@@ -4,6 +4,8 @@ pragma solidity ^0.8.13;
 import {Test, console, Vm} from "forge-std/Test.sol";
 import {compile} from "./Deploy.sol";
 
+import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
+
 using {compile} for Vm;
 
 
@@ -17,11 +19,11 @@ interface ISafeMathMock {
     function safeSub(uint256,uint256) external view returns (uint256);
     function safeMul(uint256, uint256) external view returns (uint256);
     function safeDiv(uint256, uint256) external view returns (uint256);
-    function sqrt(uint256) external view returns (uint256);
     function mulDiv(uint256, uint256, uint256) external view returns (uint256);
+    function sqrt(uint256) external view returns (uint256);
 }
 
-contract CounterTest is Test {
+contract MathTest is Test {
 
     ISafeMathMock math;
 
@@ -155,29 +157,15 @@ contract CounterTest is Test {
                 return;
             }
         }
-        assertEq(math.mulDiv(x, y, denominator), (x * y) / denominator);
+        
+        uint256 result = math.mulDiv(x, y, denominator);
+        assertEq(result, (x * y) / denominator);
+        
+        uint256 expectedResult = FixedPointMathLib.mulDiv(x, y, denominator);
+        assertEq(result, expectedResult);
     }
 
-    /*
-    function test_safeMul(uint256 n0, uint256 n1) public {
-        // case 0
-        if (n0 == 0 || n1 == 0) {
-            assertEq(math.safeMul(n0, n1), 0);
-            return;
-        }
-
-        unchecked {
-            uint256 expected = n0 * n1;
-            if (expected / n1 != n0) {
-                // overflow
-                vm.expectRevert(bytes4(keccak256("Overflow()")));
-                math.safeMul(n0, n1);
-                return;
-            }
-
-            uint256 result = math.safeMul(n0, n1);
-            assertEq(expected, result);
-        }
+    function test_sqrt(uint256 n) public {
+        assertEq(math.sqrt(n), FixedPointMathLib.sqrt(n));
     }
-    */
 }
