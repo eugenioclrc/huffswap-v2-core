@@ -1,0 +1,128 @@
+#define macro MAX() = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    dup2                        // [num2, num1, num2]
+    dup2                        // [num2, num1, num2, num1]
+    gt                          // [num2, num1, gt(num1, num2)]
+    swap1                       // [num2, gt(num1, num2), num1]
+    TERNARY()                   // [ret]
+    // returns:                    [ret]
+}
+
+#define macro MIN() = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    dup2                        // [num2, num1, num2]
+    dup2                        // [num2, num1, num2, num1]
+    lt                          // [num2, num1, lt(num1, num2)]
+    swap1                       // [num2, lt(num1, num2), num1]
+    TERNARY()                   // [ret]
+    // returns:                    [ret]
+}
+
+#define macro MUL_DIV(z0) = takes(3) returns(1) {
+    // takes:                      [d, y, x]
+    dup2                        // [d, y, x, y]
+    dup2                        // [d, y, x, y, x]
+    mul                         // [d, y, x, z]
+    swap2                       // [d, z, x, y]
+    dup2                        // [d, z, x, y, x]
+    iszero                      // [d, z, x, y, iszero(x)]
+    swap2                       // [d, z, iszero(x), y, x]
+    dup4                        // [d, z, iszero(x), y, x, z]
+    div                         // [d, z, iszero(x), y, div(z, x)]
+    eq                          // [d, z, iszero(x), eq(div(z, x), y)]
+    or                          // [d, z, or(eq(div(z, x), y), iszero(x))]
+    dup3                        // [d, z, or(eq(div(z, x), y), iszero(x)), d]
+    mul                         // [d, z, not_overflow]
+    _REQUIRE(<z0>, 0xad251c27)  // [d, z]
+    div                         // [result]
+    // returns:                    [result]
+}
+
+#define macro SAFE_ADD(z0) = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    SAFE_ADD_ERR(<z0>, 0x35278d12)
+    //                             [result]
+    // returns:                    [result]
+}
+
+#define macro SAFE_ADD_ERR(z0, err) = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    dup2                        // [num2, num1, num2]
+    add                         // [num2, result]
+    swap1                       // [result, num2]
+    dup2                        // [result, num2, result]
+    lt                          // [result, lt(result, num2)]
+    iszero                      // [result, not_overflow]
+    _REQUIRE(<z0>, <err>)       // [result]
+    // returns:                    [result]
+}
+
+#define macro SAFE_DIV(z0) = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    SAFE_DIV_ERR(<z0>, 0xb15018f)
+    //                             [result]
+    // returns:                    [result]
+}
+
+#define macro SAFE_DIV_ERR(z0, err) = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    dup2                        // [num2, num1, num2]
+    _REQUIRE(<z0>, <err>)       // [num2, num1]
+    div                         // [result]
+    // returns:                    [result]
+}
+
+#define macro SAFE_MUL(z0) = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    SAFE_MUL_ERR(<z0>, 0x35278d12)
+    //                             [result]
+    // returns:                    [result]
+}
+
+#define macro SAFE_MUL_ERR(z0, err) = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    dup1                        // [num2, num1, num1]
+    dup3                        // [num2, num1, num1, num2]
+    mul                         // [num2, num1, result]
+    swap2                       // [result, num1, num2]
+    dup2                        // [result, num1, num2, num1]
+    dup4                        // [result, num1, num2, num1, result]
+    div                         // [result, num1, num2, div(result, num1)]
+    swap2                       // [result, div(result, num1), num2, num1]
+    iszero                      // [result, div(result, num1), num2, iszero(num1)]
+    <z0>                        // [result, div(result, num1), num2, iszero(num1), z0]
+    TERNARY()                   // [result, div(result, num1), TERNARY<>(z0, iszero(num1), num2)]
+    eq                          // [result, not_overflow]
+    _REQUIRE(<z0>, <err>)       // [result]
+    // returns:                    [result]
+}
+
+#define macro SAFE_SUB(z0) = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    SAFE_SUB_ERR(<z0>, 0x35278d12)
+    //                             [result]
+    // returns:                    [result]
+}
+
+#define macro SAFE_SUB_ERR(z0, err) = takes(2) returns(1) {
+    // takes:                      [num2, num1]
+    swap1                       // [num1, num2]
+    dup2                        // [num1, num2, num1]
+    sub                         // [num1, result]
+    swap1                       // [result, num1]
+    dup2                        // [result, num1, result]
+    gt                          // [result, gt(result, num1)]
+    iszero                      // [result, not_overflow]
+    _REQUIRE(<z0>, <err>)       // [result]
+    // returns:                    [result]
+}
+
+#define macro TERNARY() = takes(3) returns(1) {
+    // takes:                      [false_value, condition, true_value]
+    dup3                        // [false_value, condition, true_value, false_value]
+    xor                         // [false_value, condition, xor(false_value, true_value)]
+    mul                         // [false_value, mul(xor(false_value, true_value), condition)]
+    xor                         // [result]
+    // returns:                    [result]
+}
+

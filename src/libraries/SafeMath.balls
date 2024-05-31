@@ -1,0 +1,77 @@
+extern _REQUIRE(z0, ERR) stack(1, 0) reads(CONTROL_FLOW)
+
+fn SAFE_ADD<z0>(num1, num2) -> (result) {
+    // bytes4(keccak256("Overflow()")) == 0x35278d12
+    result = SAFE_ADD_ERR<z0, 0x35278d12>(num1, num2)
+}
+
+fn SAFE_ADD_ERR<z0, err>(num1, num2) -> (result) {
+    result = add(num1, num2)
+    not_overflow = iszero(lt(result, num2))
+    _REQUIRE<z0, err>(not_overflow)
+}
+
+fn SAFE_SUB<z0>(num1, num2) -> (result) {
+    // bytes4(keccak256("Overflow()")) == 0x35278d12
+    result = SAFE_SUB_ERR<z0, 0x35278d12>(num1, num2)
+}
+
+fn SAFE_SUB_ERR<z0, err>(num1, num2) -> (result) {
+    result = sub(num1, num2)
+    not_overflow = iszero(gt(result, num1))
+    _REQUIRE<z0, err>(not_overflow)
+}
+
+fn SAFE_MUL<z0>(num1, num2) -> (result) {
+    // bytes4(keccak256("Overflow()")) == 0x35278d12
+    result = SAFE_MUL_ERR<z0, 0x35278d12>(num1, num2)
+}
+
+fn SAFE_MUL_ERR<z0, err>(num1, num2) -> (result) {    
+    result = mul(num1, num2)
+    
+    // if num1 == 0 then use 1 to div and check overflow
+    not_overflow = eq(div(result, num1), TERNARY(z0, iszero(num1), num2))
+    _REQUIRE<z0, err>(not_overflow)
+}
+
+fn SAFE_DIV<z0>(num1, num2) -> (result) {
+    // bytes4(keccak256("DivitionByZero()")) == 0x0b15018f
+    result = SAFE_DIV_ERR<z0, 0x0b15018f>(num1, num2)
+}
+
+fn SAFE_DIV_ERR<z0, err>(num1, num2) -> (result) {
+    //if num2 == 0 revert
+    _REQUIRE<z0, err>(num2)
+    result = div(num1, num2)
+}
+
+/*
+    /// @dev Returns `floor(x * y / d)`.
+    /// Reverts if `x * y` overflows, or `d` is zero.
+    /// taken from solady
+*/
+fn MUL_DIV<z0>(x, y, d) -> (result) {
+    z = mul(x, y)
+    // Equivalent to `require(d != 0 && (y == 0 || x <= type(uint256).max / y))`.
+    not_overflow = mul(or(iszero(x), eq(div(z, x), y)), d)
+    // MulDivFailed() == 0xad251c27
+    _REQUIRE<z0, 0xad251c27>(not_overflow)
+    result = div(z, d)
+}
+
+
+fn TERNARY(true_value, condition, false_value) -> (result) {
+    result = xor(
+        false_value,
+        mul(condition, xor(true_value, false_value))
+    )
+}
+
+fn MAX(num1, num2) -> (ret) {
+    ret = TERNARY(num1, gt(num1, num2), num2)
+}
+
+fn MIN(num1, num2) -> (ret) {
+    ret = TERNARY(num1, lt(num1, num2), num2)
+}

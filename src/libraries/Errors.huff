@@ -1,0 +1,12 @@
+
+#define macro _REVERT(z0, err4Bytes) = takes(0) returns(0) {
+    <err4Bytes> <z0> mstore
+    0x04 0x1c revert
+}
+
+#define macro _REQUIRE(z0, err4Bytes) = takes(1) returns(0) {
+    // input stack               // [condition]
+    requireOkeyJMP jumpi 
+    _REVERT(<z0>, <err4Bytes>)
+    requireOkeyJMP:
+}
