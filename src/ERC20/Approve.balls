@@ -1,10 +1,17 @@
+extern GET_SLOT_FROM_KEYS(z0) stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY)
 
-/// @notice Given two keys (ie a slot and a key), hash them together, generating a slot for a secondary hashmap.
-fn GET_SLOT_FROM_KEYS<mem_ptr>(key1, key2) -> (hashed) {
-    // Load the data into memory.
-    mstore(add(mem_ptr, 0x20), key1)
-    mstore(mem_ptr, key2)
+const _APPROVAL_EVENT_SIGNATURE
 
-    // Hash the data, generating a slot.
-    hashed = sha3(mem_ptr, 0x40)
+fn APPROVE<z0>() -> () {
+    spender = calldataload(0x04)
+    amount = calldataload(0x24)
+
+    allowanceSlot = GET_SLOT_FROM_KEYS<z0>(caller(), spender)
+    sstore(allowanceSlot, amount)
+
+    mstore(z0, amount)
+    log3(z0, 0x20, _APPROVAL_EVENT_SIGNATURE, caller(), spender)
+
+    mstore(z0, 0x01)
+    return(z0, 0x20)
 }

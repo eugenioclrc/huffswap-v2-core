@@ -1,0 +1,23 @@
+/// @dev Returns the name of the token.
+fn NAME<z0>() -> () {
+    mstore(z0, 0x20)
+    // idea taken from Seaport
+    // 0x0f "HuffSwap PairV2"
+    mstore(0x2f, 0x487566665377617020506169725632)
+    return(z0, 0x60)
+}
+
+/// @dev Returns the symbol of the token.
+fn SYMBOL<z0>() -> () {
+    mstore(z0, 0x20)
+    // 0x0b "HUFFSWAP-V2"
+    mstore(0x2b, 0x0b48554646535741502d5632)
+    return(z0, 0x60)
+}
+
+/// @dev Returns the decimals places of the token.
+fn DECIMALS<z0>() -> () {
+    // 0x12 = 18
+    mstore(z0, 0x12)
+    return(z0, 0x20)
+}

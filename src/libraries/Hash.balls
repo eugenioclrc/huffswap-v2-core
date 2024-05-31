@@ -1,0 +1,12 @@
+
+
+/// @notice Given two keys), hash them together, generating a slot.
+fn GET_SLOT_FROM_KEYS<z0>(key1, key2) -> (hashed) {
+    // Load the data into memory.
+    mstore(0x20, key1)
+    mstore(z0, key2)
+
+    // Hash the data, generating a slot.
+    hashed = sha3(z0, 0x40)
+}
+
