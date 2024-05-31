@@ -1,0 +1,10 @@
+
+/// @notice Given two keys (ie a slot and a key), hash them together, generating a slot for a secondary hashmap.
+fn GET_SLOT_FROM_KEYS<mem_ptr>(key1, key2) -> (hashed) {
+    // Load the data into memory.
+    mstore(add(mem_ptr, 0x20), key1)
+    mstore(mem_ptr, key2)
+
+    // Hash the data, generating a slot.
+    hashed = sha3(mem_ptr, 0x40)
+}
