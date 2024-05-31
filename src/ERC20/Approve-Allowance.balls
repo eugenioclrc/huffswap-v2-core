@@ -15,3 +15,14 @@ fn APPROVE<z0>() -> () {
     mstore(z0, 0x01)
     return(z0, 0x20)
 }
+
+// allowance(address spender, address owner) view returns (uint256)
+fn ALLOWANCE<z0>() -> () {
+    owner = calldataload(0x04)
+    spender = calldataload(0x24)
+
+    allowanceSlot = GET_SLOT_FROM_KEYS<z0>(owner, spender)
+    allowanceAmount = sload(allowanceSlot)
+    mstore(z0, allowanceAmount)
+    return(z0, 0x20)
+}

@@ -3,7 +3,7 @@ fn NAME<z0>() -> () {
     mstore(z0, 0x20)
     // idea taken from Seaport
     // 0x0f "HuffSwap PairV2"
-    mstore(0x2f, 0x487566665377617020506169725632)
+    mstore(0x2f, 0x0f487566665377617020506169725632)
     return(z0, 0x60)
 }
 

@@ -1,0 +1,114 @@
+/// @title ERC20 Huffswap V2
+/// @notice SPDX-License-Identifier: MIT
+/// @author 0x4non
+/// @notice Some ideas were taken from Solmate, Solady and Huffmate
+
+#include "../libraries/SafeMath.huff"
+#include "../libraries/Hash.huff"
+
+// Interface
+
+#define function name() nonpayable returns (string)
+#define function symbol() nonpayable returns (string)
+#define function decimals() nonpayable returns (uint256)
+
+#define function totalSupply() nonpayable returns (uint256)
+
+#define function allowance(address,address) view returns (uint256)
+#define function balanceOf(address) view returns (uint256)
+#define function totalSupply() view returns (uint256)
+
+#define function approve(address,uint256) nonpayable returns ()
+#define function transfer(address,uint256) nonpayable returns ()
+#define function transferFrom(address,address,uint256) nonpayable returns ()
+
+// ERC1363 Payable token
+#define function approveAndCall(address,uint256,bytes) nonpayable returns ()
+#define function transferAndCall(address,uint256,bytes) nonpayable returns ()
+
+// Events
+#define event Approval(address indexed, address indexed, uint256)
+#define event Transfer(address, address, uint256)
+
+#define macro DECIMALS(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    <z0>                        // [0x20, z0]
+    0x12                        // [0x20, z0, 0x12]
+    <z0>                        // [0x20, z0, 0x12, z0]
+    mstore                      // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro NAME(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0xf487566665377617020506169725632
+    //                             [0xf487566665377617020506169725632]
+    0x20                        // [0xf487566665377617020506169725632, 0x20]
+    <z0>                        // [0xf487566665377617020506169725632, 0x20, z0]
+    mstore                      // [0xf487566665377617020506169725632]
+    0x2f                        // [0xf487566665377617020506169725632, 0x2f]
+    mstore                      // []
+    0x60                        // [0x60]
+    <z0>                        // [0x60, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro SYMBOL(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0xb48554646535741502d5632   // [0xb48554646535741502d5632]
+    0x20                        // [0xb48554646535741502d5632, 0x20]
+    <z0>                        // [0xb48554646535741502d5632, 0x20, z0]
+    mstore                      // [0xb48554646535741502d5632]
+    0x2b                        // [0xb48554646535741502d5632, 0x2b]
+    mstore                      // []
+    0x60                        // [0x60]
+    <z0>                        // [0x60, z0]
+    return                      // []
+    // returns:                    []
+}
+#define macro ALLOWANCE(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    0x24                        // [0x20, 0x24]
+    calldataload                // [0x20, spender]
+    0x4                         // [0x20, spender, 0x4]
+    calldataload                // [0x20, spender, owner]
+    GET_SLOT_FROM_KEYS(<z0>)    // [0x20, allowanceSlot]
+    sload                       // [0x20, allowanceAmount]
+    <z0>                        // [0x20, allowanceAmount, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro APPROVE(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    0x1                         // [0x20, 0x1]
+    <z0>                        // [0x20, 0x1, z0]
+    0x4                         // [0x20, 0x1, z0, 0x4]
+    calldataload                // [0x20, 0x1, z0, spender]
+    0x24                        // [0x20, 0x1, z0, spender, 0x24]
+    calldataload                // [0x20, 0x1, z0, spender, amount]
+    <z0>                        // [0x20, 0x1, z0, spender, amount, z0]
+    dup2                        // [0x20, 0x1, z0, spender, amount, z0, amount]
+    dup4                        // [0x20, 0x1, z0, spender, amount, z0, amount, spender]
+    caller                      // [0x20, 0x1, z0, spender, amount, z0, amount, spender, caller()]
+    GET_SLOT_FROM_KEYS(<z0>)    // [0x20, 0x1, z0, spender, amount, z0, amount, allowanceSlot]
+    sstore                      // [0x20, 0x1, z0, spender, amount, z0]
+    mstore                      // [0x20, 0x1, z0, spender]
+    caller                      // [0x20, 0x1, z0, spender, caller()]
+    __EVENT_HASH(Approval)
+    //                             [0x20, 0x1, z0, spender, caller(), _APPROVAL_EVENT_SIGNATURE]
+    0x20                        // [0x20, 0x1, z0, spender, caller(), _APPROVAL_EVENT_SIGNATURE, 0x20]
+    <z0>                        // [0x20, 0x1, z0, spender, caller(), _APPROVAL_EVENT_SIGNATURE, 0x20, z0]
+    log3                        // [0x20, 0x1, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}

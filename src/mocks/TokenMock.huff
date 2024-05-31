@@ -1,0 +1,42 @@
+#include "../ERC20/main.huff"
+#include "../libraries/Errors.huff"
+
+
+#define function name() nonpayable returns (string)
+#define function symbol() nonpayable returns (string)
+#define function decimals() nonpayable returns (uint256)
+
+#define function approve(address spender, uint256 amount) nonpayable returns (bool)
+#define function allowance(address owner, address spender) nonpayable returns (uint256 amount)
+
+#define macro MAIN() = takes (1) returns (1) {
+    // Identify which function is being called.
+    0x00 calldataload 0xE0 shr          // [func_sig]
+
+    dup1 __FUNC_SIG(name)                 eq nameJump             jumpi
+    dup1 __FUNC_SIG(symbol)               eq symbolJump           jumpi
+    dup1 __FUNC_SIG(decimals)             eq decimalsJump         jumpi
+    dup1 __FUNC_SIG(approve)              eq approveJump          jumpi
+    dup1 __FUNC_SIG(allowance)            eq allowanceJump        jumpi
+
+
+    0xffffffff 0x00 mstore
+    0x04 0x1c revert
+
+
+    nameJump:
+      NAME(0x00)
+
+    symbolJump:
+      SYMBOL(0x00)
+    
+    decimalsJump:
+      DECIMALS(0x00)      
+
+    approveJump:
+      APPROVE(0x00)
+
+    allowanceJump:
+      ALLOWANCE(0x00)
+}
+

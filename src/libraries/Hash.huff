@@ -1,0 +1,11 @@
+#define macro GET_SLOT_FROM_KEYS(z0) = takes(2) returns(1) {
+    // takes:                      [key2, key1]
+    0x20                        // [key2, key1, 0x20]
+    mstore                      // [key2]
+    <z0>                        // [key2, z0]
+    mstore                      // []
+    0x40                        // [0x40]
+    <z0>                        // [0x40, z0]
+    sha3                        // [hashed]
+    // returns:                    [hashed]
+}

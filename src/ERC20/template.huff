@@ -1,0 +1,32 @@
+/// @title ERC20 Huffswap V2
+/// @notice SPDX-License-Identifier: MIT
+/// @author 0x4non
+/// @notice Some ideas were taken from Solmate, Solady and Huffmate
+
+#include "../libraries/SafeMath.huff"
+#include "../libraries/Hash.huff"
+
+// Interface
+
+#define function name() nonpayable returns (string)
+#define function symbol() nonpayable returns (string)
+#define function decimals() nonpayable returns (uint256)
+
+#define function totalSupply() nonpayable returns (uint256)
+
+#define function allowance(address,address) view returns (uint256)
+#define function balanceOf(address) view returns (uint256)
+#define function totalSupply() view returns (uint256)
+
+#define function approve(address,uint256) nonpayable returns ()
+#define function transfer(address,uint256) nonpayable returns ()
+#define function transferFrom(address,address,uint256) nonpayable returns ()
+
+// ERC1363 Payable token
+#define function approveAndCall(address,uint256,bytes) nonpayable returns ()
+#define function transferAndCall(address,uint256,bytes) nonpayable returns ()
+
+// Events
+#define event Approval(address indexed, address indexed, uint256)
+#define event Transfer(address, address, uint256)
+
