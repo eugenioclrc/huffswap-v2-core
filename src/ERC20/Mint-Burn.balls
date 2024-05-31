@@ -1,0 +1,32 @@
+extern SAFE_SUB_ERR(z0, err) stack(2, 1)
+extern SAFE_ADD(z0) stack(2, 1)
+
+const TOTAL_SUPPLY_SLOT
+const _TRANSFER_EVENT_SIGNATURE
+
+fn TOTAL_SUPPLY<z0>() -> () {
+    mstore(z0, sload(TOTAL_SUPPLY_SLOT))
+    return(z0, 0x20)
+}
+
+fn _MINT<z0>(to, amount) -> () {
+    // @notice `to` high bytes are not being cleaned, make sure to clean them before calling this function
+    sstore(TOTAL_SUPPLY_SLOT, SAFE_ADD<z0>(sload(TOTAL_SUPPLY_SLOT), amount))
+    sstore(to, add(sload(to), amount))
+
+    mstore(z0, amount)
+    log3(z0, 0x20, _TRANSFER_EVENT_SIGNATURE, z0, to)
+}
+
+fn _BURN<z0>(from, amount) -> () {
+    // @notice `from` high bytes are not being cleaned, make sure to clean them before calling this function
+    
+    // impossible to underflow, there is a check on the user balance burn line
+    sstore(TOTAL_SUPPLY_SLOT, sub(sload(TOTAL_SUPPLY_SLOT), amount))
+
+    // error InsufficientBalance() = 0xf4d678b8
+    sstore(from, SAFE_SUB_ERR<z0, 0xf4d678b8>(sload(from), amount))
+
+    mstore(z0, amount)
+    log3(z0, 0x20, _TRANSFER_EVENT_SIGNATURE, from, z0)
+}

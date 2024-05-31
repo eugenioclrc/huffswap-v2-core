@@ -5,6 +5,7 @@
 
 #include "../libraries/SafeMath.huff"
 #include "../libraries/Hash.huff"
+#include "../Storage.huff"
 
 // Interface
 
@@ -29,4 +30,10 @@
 // Events
 #define event Approval(address indexed, address indexed, uint256)
 #define event Transfer(address, address, uint256)
+
+// Errors
+#define error InsufficientBalance()
+#define error InsufficientAllowance()
+
+#define constant ADDRESS_MASK = 0xffffffffffffffffffffffffffffffffffffffff
 

@@ -11,11 +11,22 @@ interface IToken {
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function decimals() external view returns (uint8);
-
-    function approve(address spender, uint256 amount) external returns (bool);
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
     function allowance(address owner, address spender) external view returns (uint256);
+    
+    function approve(address spender, uint256 amount) external returns (bool);
+    
+    
+    function mint(address to, uint256 amount) external;
+    function burn(address from, uint256 amount) external;
 
     event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    error InsufficientBalance();
+    error InsufficientAllowance();
+    error Overflow();
 }
 
 contract TokenTest is Test {
@@ -40,11 +51,57 @@ contract TokenTest is Test {
 
     function test_allowance(address owner, address spender, uint256 amount) public {
         assertEq(token.allowance(owner, spender), 0);
+        
         vm.expectEmit(true, true, true, true);
         emit IToken.Approval(owner, spender, amount);        
         vm.prank(owner);
         assertTrue(token.approve(spender, amount));
 
         assertEq(token.allowance(owner, spender), amount);
+    }
+
+    function testMintOverflow() public {
+        token.mint(address(this), type(uint256).max / 3);
+        token.mint(address(this), type(uint256).max / 3);
+        token.mint(address(this), type(uint256).max / 3);
+
+        vm.expectRevert(IToken.Overflow.selector);
+        token.mint(address(this), type(uint256).max / 3);
+    }
+
+    function testMint(address from, uint256 amount) public {
+        assertEq(token.totalSupply(), 0);
+
+        vm.expectEmit(true, true, true, true);
+        emit IToken.Transfer(address(0), from, amount);
+        token.mint(from, amount);
+
+        assertEq(token.balanceOf(from), amount);
+        assertEq(token.totalSupply(), amount);
+    }
+
+    function testMintAndBurn(address from, uint256 amountMint, uint256 amountBurn) public {
+        assertEq(token.totalSupply(), 0);
+        
+        vm.expectEmit(true, true, true, true);
+        emit IToken.Transfer(address(0), from, amountMint);
+        token.mint(from, amountMint);
+        
+        assertEq(token.totalSupply(), amountMint);
+
+        if (amountBurn > amountMint) {
+            vm.expectRevert(IToken.InsufficientBalance.selector);
+            token.burn(from, amountBurn);
+
+            assertEq(token.balanceOf(from), amountMint);
+            assertEq(token.totalSupply(), amountMint);
+        } else {
+            vm.expectEmit(true, true, true, true);
+            emit IToken.Transfer(from, address(0), amountBurn);
+            token.burn(from, amountBurn);
+            
+            assertEq(token.balanceOf(from), amountMint - amountBurn);
+            assertEq(token.totalSupply(), amountMint - amountBurn);
+        }
     }
 }

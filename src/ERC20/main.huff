@@ -5,6 +5,7 @@
 
 #include "../libraries/SafeMath.huff"
 #include "../libraries/Hash.huff"
+#include "../Storage.huff"
 
 // Interface
 
@@ -29,6 +30,12 @@
 // Events
 #define event Approval(address indexed, address indexed, uint256)
 #define event Transfer(address, address, uint256)
+
+// Errors
+#define error InsufficientBalance()
+#define error InsufficientAllowance()
+
+#define constant ADDRESS_MASK = 0xffffffffffffffffffffffffffffffffffffffff
 
 #define macro DECIMALS(z0) = takes(0) returns(0) {
     // takes:                      []
@@ -110,5 +117,132 @@
     mstore                      // [0x20]
     <z0>                        // [0x20, z0]
     return                      // []
+    // returns:                    []
+}
+
+#define macro _USE_ALLOWANCE(z0) = takes(3) returns(0) {
+    // takes:                      [amount, spender, owner]
+    GET_SLOT_FROM_KEYS(<z0>)    // [amount, allowanceSlot]
+    swap1                       // [allowanceSlot, amount]
+    dup2                        // [allowanceSlot, amount, allowanceSlot]
+    sload                       // [allowanceSlot, amount, allowanceAmount]
+    SAFE_SUB_ERR(<z0>, 0x13be252b)
+    //                             [allowanceSlot, newAllowanceAmount]
+    swap1                       // [newAllowanceAmount, allowanceSlot]
+    sstore                      // []
+    // returns:                    []
+}
+#define macro BALANCE_OF(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    0x4                         // [0x20, 0x4]
+    calldataload                // [0x20, owner]
+    sload                       // [0x20, ownerBalance]
+    <z0>                        // [0x20, ownerBalance, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro TRANSFER(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x1                         // [0x1]
+    <z0>                        // [0x1, z0]
+    [ADDRESS_MASK]              // [0x1, z0, ADDRESS_MASK]
+    0x4                         // [0x1, z0, ADDRESS_MASK, 0x4]
+    calldataload                // [0x1, z0, ADDRESS_MASK, calldataload(0x4)]
+    and                         // [0x1, z0, to]
+    caller                      // [0x1, z0, to, caller()]
+    __EVENT_HASH(Transfer)
+    //                             [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE]
+    0x20                        // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20]
+    <z0>                        // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0]
+    0x24                        // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, 0x24]
+    calldataload                // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount]
+    dup1                        // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, amount]
+    caller                      // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, amount, caller()]
+    sload                       // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, amount, senderBalance]
+    SAFE_SUB_ERR(<z0>, 0xf4d678b8)
+    //                             [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, newSenderBalance]
+    caller                      // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, newSenderBalance, caller()]
+    sstore                      // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount]
+    dup1                        // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, amount]
+    dup7                        // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, amount, to]
+    sload                       // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, amount, sload(to)]
+    add                         // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, add(sload(to), amount)]
+    dup7                        // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, add(sload(to), amount), to]
+    sstore                      // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount]
+    <z0>                        // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0, amount, z0]
+    mstore                      // [0x1, z0, to, caller(), _TRANSFER_EVENT_SIGNATURE, 0x20, z0]
+    log3                        // [0x1, z0]
+    mstore                      // []
+    0x20                        // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+#define macro TOTAL_SUPPLY(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    [TOTAL_SUPPLY_SLOT]         // [0x20, TOTAL_SUPPLY_SLOT]
+    sload                       // [0x20, sload(TOTAL_SUPPLY_SLOT)]
+    <z0>                        // [0x20, sload(TOTAL_SUPPLY_SLOT), z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro _BURN(z0) = takes(2) returns(0) {
+    // takes:                      [amount, from]
+    <z0>                        // [amount, from, z0]
+    swap2                       // [z0, from, amount]
+    dup1                        // [z0, from, amount, amount]
+    <z0>                        // [z0, from, amount, amount, z0]
+    mstore                      // [z0, from, amount]
+    dup2                        // [z0, from, amount, from]
+    dup2                        // [z0, from, amount, from, amount]
+    [TOTAL_SUPPLY_SLOT]         // [z0, from, amount, from, amount, TOTAL_SUPPLY_SLOT]
+    sload                       // [z0, from, amount, from, amount, sload(TOTAL_SUPPLY_SLOT)]
+    sub                         // [z0, from, amount, from, sub(sload(TOTAL_SUPPLY_SLOT), amount)]
+    [TOTAL_SUPPLY_SLOT]         // [z0, from, amount, from, sub(sload(TOTAL_SUPPLY_SLOT), amount), TOTAL_SUPPLY_SLOT]
+    sstore                      // [z0, from, amount, from]
+    sload                       // [z0, from, amount, sload(from)]
+    SAFE_SUB_ERR(<z0>, 0xf4d678b8)
+    //                             [z0, from, SAFE_SUB_ERR<z0, 0xf4d678b8>(sload(from), amount)]
+    dup2                        // [z0, from, SAFE_SUB_ERR<z0, 0xf4d678b8>(sload(from), amount), from]
+    sstore                      // [z0, from]
+    __EVENT_HASH(Transfer)
+    //                             [z0, from, _TRANSFER_EVENT_SIGNATURE]
+    0x20                        // [z0, from, _TRANSFER_EVENT_SIGNATURE, 0x20]
+    <z0>                        // [z0, from, _TRANSFER_EVENT_SIGNATURE, 0x20, z0]
+    log3                        // []
+    // returns:                    []
+}
+
+#define macro _MINT(z0) = takes(2) returns(0) {
+    // takes:                      [amount, to]
+    swap1                       // [to, amount]
+    <z0>                        // [to, amount, z0]
+    dup2                        // [to, amount, z0, amount]
+    dup4                        // [to, amount, z0, amount, to]
+    dup4                        // [to, amount, z0, amount, to, amount]
+    [TOTAL_SUPPLY_SLOT]         // [to, amount, z0, amount, to, amount, TOTAL_SUPPLY_SLOT]
+    sload                       // [to, amount, z0, amount, to, amount, sload(TOTAL_SUPPLY_SLOT)]
+    SAFE_ADD(<z0>)              // [to, amount, z0, amount, to, SAFE_ADD<z0>(sload(TOTAL_SUPPLY_SLOT), amount)]
+    [TOTAL_SUPPLY_SLOT]         // [to, amount, z0, amount, to, SAFE_ADD<z0>(sload(TOTAL_SUPPLY_SLOT), amount), TOTAL_SUPPLY_SLOT]
+    sstore                      // [to, amount, z0, amount, to]
+    sload                       // [to, amount, z0, amount, sload(to)]
+    add                         // [to, amount, z0, add(sload(to), amount)]
+    dup4                        // [to, amount, z0, add(sload(to), amount), to]
+    sstore                      // [to, amount, z0]
+    mstore                      // [to]
+    <z0>                        // [to, z0]
+    __EVENT_HASH(Transfer)
+    //                             [to, z0, _TRANSFER_EVENT_SIGNATURE]
+    0x20                        // [to, z0, _TRANSFER_EVENT_SIGNATURE, 0x20]
+    <z0>                        // [to, z0, _TRANSFER_EVENT_SIGNATURE, 0x20, z0]
+    log3                        // []
     // returns:                    []
 }

@@ -1,4 +1,5 @@
 extern GET_SLOT_FROM_KEYS(z0) stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY)
+extern SAFE_SUB_ERR(z0, err) stack(2, 1)
 
 const _APPROVAL_EVENT_SIGNATURE
 
@@ -16,7 +17,7 @@ fn APPROVE<z0>() -> () {
     return(z0, 0x20)
 }
 
-// allowance(address spender, address owner) view returns (uint256)
+// allowance(address owner, address spender) view returns (uint256)
 fn ALLOWANCE<z0>() -> () {
     owner = calldataload(0x04)
     spender = calldataload(0x24)
@@ -25,4 +26,14 @@ fn ALLOWANCE<z0>() -> () {
     allowanceAmount = sload(allowanceSlot)
     mstore(z0, allowanceAmount)
     return(z0, 0x20)
+}
+
+fn _USE_ALLOWANCE<z0>(owner, spender, amount) -> () {
+    allowanceSlot = GET_SLOT_FROM_KEYS<z0>(owner, spender)
+    allowanceAmount = sload(allowanceSlot)
+
+    // `InsufficientAllowance()
+    newAllowanceAmount = SAFE_SUB_ERR<z0, 0x13be252b>(allowanceAmount, amount)
+
+    sstore(allowanceSlot, newAllowanceAmount)
 }
