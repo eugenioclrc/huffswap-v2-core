@@ -44,10 +44,12 @@
 
     
     dup1 __FUNC_SIG("approveAndCall(address,uint256,bytes)") eq approveAndCallJump          jumpi
-    dup1 __FUNC_SIG("approveAndCall(address,uint256)") eq approveAndCallJump          jumpi
+    dup1 __FUNC_SIG("approveAndCall(address,uint256)") eq approveAndCallJump                jumpi
     
     dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)") eq transferAndCallJump        jumpi
     dup1 __FUNC_SIG("transferAndCall(address,uint256)") eq transferAndCallJump              jumpi
+
+    dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256,bytes)") eq transferFromAndCallJump  jumpi
 
 
     0xffffffff 0x00 mstore
@@ -77,6 +79,9 @@
 
     transferAndCallJump:
       TRANSFER_AND_CALL(0x00)
+    
+    transferFromAndCallJump:
+      TRANSFER_FROM_AND_CALL(0x00)
 
     approveAndCallJump:
       APPROVE_AND_CALL(0x00)

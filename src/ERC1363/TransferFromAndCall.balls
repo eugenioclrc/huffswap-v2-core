@@ -1,0 +1,52 @@
+extern _REQUIRE(z0, err) stack(1, 0) reads(CONTROL_FLOW)
+extern SAFE_SUB_ERR(z0, err) stack(2, 1)
+extern _USE_ALLOWANCE(z0) stack(3, 1) writes(CONTROL_FLOW)
+
+const _APPROVAL_EVENT_SIGNATURE
+const _TRANSFER_EVENT_SIGNATURE
+const SIG_onTransferReceived
+const ADDRESS_MASK
+
+
+fn TRANSFER_FROM_AND_CALL<z0>() -> () {
+    from = and(calldataload(0x04), ADDRESS_MASK)
+    to = and(calldataload(0x04), ADDRESS_MASK)
+    amount = calldataload(0x44)
+
+    FromBalance = sload(from)
+    // caller() is the spender
+    _USE_ALLOWANCE<z0>(from, caller(), amount)
+    
+    // error InsufficientBalance()
+    newFromBalance = SAFE_SUB_ERR<z0, 0xf4d678b8>(FromBalance, amount)
+    sstore(from, newFromBalance)
+
+    // impossible to overflow, total supply is 2^256 - 1, otherwise it would rever on mint while updating total supply
+    sstore(to, add(sload(to), amount))
+
+    mstore(0x44, amount)
+    log3(0x44, 0x20, _TRANSFER_EVENT_SIGNATURE, from, to)
+
+    calldatacopy(0x24, 0x04, sub(calldatasize(), 0x04))
+    
+    shiftedFunctionSig = shl(0xe0, SIG_onTransferReceived)
+    mstore(z0, shiftedFunctionSig)
+    mstore(0x04, caller()) // spender
+    //mstore(0x24, caller())
+    //mstore(0x44, amount)
+    mstore(0x64, 0x80)
+    
+    // add(calldatasize(), 0x60) is an overestimation of the calldata size, for empty bytes edgecase
+    callOk = call(gas(), to, z0, z0, add(calldatasize(), 0x60), z0, 0x20)
+
+    // error Receiver_transferReceived_rejected() = 0x85b16394
+    _REQUIRE<z0, 0x85b16394>(callOk)
+    ret = mload(z0)
+    // error Receiver_transferReceived_rejected() = 0x85b16394
+    // __FUNC_SIG("onTransferReceived(address,address,uint256,bytes)") 0xe0 shl
+    _REQUIRE<z0, 0x85b16394>(eq(ret, shiftedFunctionSig))
+    
+    // reuse callOk to avoid push1 0x01
+    mstore(z0, 0x01)
+    return(z0, 0x20)
+}

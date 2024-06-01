@@ -49,11 +49,6 @@ contract PayableTokenTest is Test {
     IToken token;
 
     function setUp() public {
-        string[] memory cmd = new string[](2);
-        cmd[0] = "sh";
-        cmd[1] = "build-erc1363.sh";
-        vm.ffi(cmd);
-
         bytes memory bytecode = vm.compile("src/mocks/PayableToken.huff");
         /// @solidity memory-safe-assembly
         IToken _token;

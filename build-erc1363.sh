@@ -1,5 +1,6 @@
 cat src/ERC1363/template.huff                                     > src/ERC1363/main.huff
 balls src/ERC1363/TransferAndCall.balls -d          | head -n -1 >> src/ERC1363/main.huff
+balls src/ERC1363/TransferFromAndCall.balls -d      | head -n -1 >> src/ERC1363/main.huff
 balls src/ERC1363/ApproveAndCall.balls -d           | head -n -1 >> src/ERC1363/main.huff
 
 
