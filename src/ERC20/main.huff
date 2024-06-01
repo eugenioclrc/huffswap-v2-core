@@ -131,6 +131,7 @@
     // takes:                      [amount, allowanceAmount, allowanceSlot]
     dup3                        // [amount, allowanceAmount, allowanceSlot, amount]
     dup3                        // [amount, allowanceAmount, allowanceSlot, amount, allowanceAmount]
+    // reduce allowance, revert if allowance is underflow
     SAFE_SUB_ERR(<z0>, 0x13be252b)
     //                             [amount, allowanceAmount, allowanceSlot, newAllowanceAmount]
     dup2                        // [amount, allowanceAmount, allowanceSlot, newAllowanceAmount, allowanceSlot]

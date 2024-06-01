@@ -9,4 +9,4 @@ sed -i "s/\[_APPROVAL_EVENT_SIGNATURE\]/__EVENT_HASH(Approval)/g" src/ERC20/main
 sed -i "s/\[_TRANSFER_EVENT_SIGNATURE\]/__EVENT_HASH(Transfer)/g" src/ERC20/main.huff
 
 # sanity check
-huffc src/ERC20/main.huff
+huffc src/mocks/TokenMock.huff
