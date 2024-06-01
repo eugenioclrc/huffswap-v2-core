@@ -1,5 +1,6 @@
 #include "../ERC1363/main.huff"
 #include "../libraries/Errors.huff"
+#include "Huff-Console/Console.huff"
 
 
 #define function name() nonpayable returns (string)

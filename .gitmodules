@@ -4,3 +4,6 @@
 [submodule "lib/solady"]
 	path = lib/solady
 	url = https://github.com/vectorized/solady
+[submodule "lib/Huff-Console"]
+	path = lib/Huff-Console
+	url = https://github.com/AmadiMichael/Huff-Console

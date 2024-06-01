@@ -13,18 +13,29 @@ fn APPROVE_AND_CALL<z0>() -> () {
 
   slot = GET_SLOT_FROM_KEYS<z0>(caller(), spender)
 
-  sstore(slot, amount)  
-  mstore(z0, amount)
-  log3(z0, 0x20, _APPROVAL_EVENT_SIGNATURE, caller(), spender)
+  sstore(slot, amount)
   
-  calldatacopy(0x04, 0x04, sub(calldatasize(), 0x04))
+  // split into functions because it was messing the memory
+  _APPROVE_SET_AMOUNT_AND_LOG(spender)
+  
+  _APPROVE_HOOK<z0>(spender)
+  mstore(z0, 0x01)
+  return(z0, 0x20)  
+}
 
-  
+
+fn _APPROVE_SET_AMOUNT_AND_LOG(spender) -> () reads(CONTROL_FLOW) writes(MEMORY) {
+  calldatacopy(0x24, 0x24, sub(calldatasize(), 0x24))
+  log3(0x24, 0x20, _APPROVAL_EVENT_SIGNATURE, caller(), spender)
+}
+
+fn _APPROVE_HOOK<z0>(spender) -> () reads(CONTROL_FLOW, MEMORY) {
   shiftedFunctionSig = shl(0xe0, SIG_onApprovalReceived)
   mstore(z0, shiftedFunctionSig)
   mstore(0x04, caller())
-
-  callOk = call(gas(), spender, z0, z0, calldatasize(), z0, 0x20)
+  mstore(0x44, 0x60)
+  
+  callOk = call(gas(), spender, z0, z0, add(calldatasize(), 0x40), z0, 0x20)
   // error Spender_onApprovalReceived_rejected() = 0x81cbe4db
   _REQUIRE<z0, 0x81cbe4db>(callOk)
   ret = mload(z0)
@@ -32,171 +43,5 @@ fn APPROVE_AND_CALL<z0>() -> () {
   // __FUNC_SIG("onApprovalReceived(address,uint256,bytes)") 0xe0 shl
   _REQUIRE<z0, 0x81cbe4db>(eq(ret, shiftedFunctionSig))
   
-  // reuse callOk to avoid push1 0x01
-  mstore(z0, callOk)
-  return(z0, 0x20)
-}
-/*
-
-fn APPROVE_AND_CALL<z0>() -> () {
-    to = and(calldataload(0x04), ADDRESS_MASK)
-    amount = calldataload(0x24)
-
-    senderBalance = sload(caller())
-    
-    // error InsufficientBalance()
-    newSenderBalance = SAFE_SUB_ERR<z0, 0xf4d678b8>(senderBalance, amount)
-    sstore(caller(), newSenderBalance)
-
-    // impossible to overflow, total supply is 2^256 - 1, otherwise it would rever on mint while updating total supply
-    sstore(to, add(sload(to), amount))
-
-    mstore(z0, amount)
-    log3(z0, 0x20, _TRANSFER_EVENT_SIGNATURE, caller(), to)
-
-    calldatacopy(0x64, 0x44, sub(calldatasize(), 0x44))
-    
-    shiftedFunctionSig = shl(0xe0, SIG_onTransferReceived)
-    mstore(z0, shiftedFunctionSig)
-    mstore(0x04, caller())
-    mstore(0x24, caller())
-    mstore(0x44, amount)
-    mstore(0x64, 0x80)
-    
-    // add(calldatasize(), 0x60) is an overestimation of the calldata size, for empty bytes edgecase
-    callOk = call(gas(), to, z0, z0, add(calldatasize(), 0x60), z0, 0x20)
-
-    // error Receiver_transferReceived_rejected() = 0x85b16394
-    _REQUIRE<z0, 0x85b16394>(callOk)
-    ret = mload(z0)
-    // error Receiver_transferReceived_rejected() = 0x85b16394
-    // __FUNC_SIG("onTransferReceived(address,address,uint256,bytes)") 0xe0 shl
-    _REQUIRE<z0, 0x85b16394>(eq(ret, shiftedFunctionSig))
-    
-    // reuse callOk to avoid push1 0x01
-    mstore(z0, callOk)
-    return(z0, 0x20)
-}
-
-/*
-
-
-/// @notice Given two keys (ie a slot and a key), hash them together, generating a slot for a secondary hashmap.
-fn GET_SLOT_FROM_KEYS<mem_ptr>(key1, key2) -> (hashed) {
-    // Load the data into memory.
-    mstore(add(mem_ptr, 0x20), key1)
-    mstore(mem_ptr, key2)
-
-    // Hash the data, generating a slot.
-    hashed = sha3(mem_ptr, 0x40)
-}
-
-
-fn _MINT<z0>(to, amount) -> () {
-  totalBalance = sload(TOTAL_SUPPLY_SLOT)
-  sstore(TOTAL_SUPPLY_SLOT, SAFE_ADD(totalBalance, amount))
-
-  _balance = sload(to)
-  sstore(to, SAFE_ADD(_balance, amount))
-
-  mstore(z0, amount)
-
-  log3(z0, 0x20, _TRANSFER_EVENT_SIGNATURE, 0x00, to)
-}
-
-fn _BURN<z0>(to, amount) -> () {
-  totalBalance = sload(TOTAL_SUPPLY_SLOT)
-  sstore(TOTAL_SUPPLY_SLOT, SAFE_SUB(totalBalance, amount))
-
-
-  _balance = sload(to)
-  sstore(to, SAFE_SUB(_balance, amount))
-
-  mstore(z0, amount)
-
-  log3(z0, 0x20, _TRANSFER_EVENT_SIGNATURE, to, z0)
-}
-
-fn APPROVE<z0>() -> () {
-  spender = calldataload(0x04)
-  // cast amount, the max is uint128
-  amount = calldataload(0x24)
-
-  slot = GET_SLOT_FROM_KEYS<z0>(caller(), spender)
-
-  sstore(slot, amount)
   
-  mstore(z0, amount)
-
-  log3(z0, 0x20, _APPROVAL_EVENT_SIGNATURE, caller(), spender)
-
-  // return true
-  //mstore(0x01, 0x00)
-  //return(z0, 0x20)
 }
-
-/*
-
-fn TRANSFER<z0>() -> () {
-    slot = shl(8, caller())
-    balanceSender = sload(slot)
-
-    amount = calldataload(0x24)
-    
-    newSenderBalance = SAFE_SUB(balanceSender, amount)
-    sstore(slot, newSenderBalance)
-
-    receiver = calldataload(0x04)
-    slotReceiver = shl(8, receiver)
-    balanceReceiver = sload(slotReceiver)
-    newBalanceReceiver = add(balanceReceiver, amount)
-
-    sstore(slotReceiver, newBalanceReceiver)
-
-    mstore(z0, amount)
-    log3(z0, 0x20, _TRANSFER_EVENT_SIGNATURE, caller(), receiver)
-    // return true
-    mstore(0x01, z0)
-    return(z0, 0x20)
-}
-*/
-
-/*
-fn USE_ALLOWANCE<z0>(from, spender, amount) -> () {
-  slotAllowance = GET_SLOT_FROM_KEYS<z0>(from, spender)
-  // lets check if we have allowance
-  allowance = sload(slotAllowance)
-  isInfinite = eq(allowance, not(z0))
-  CHECK_BALANCE(isInfinite)
-  /*
-  isInvalidAmount = gt(amount, allowance)
-  CHECK_BALANCE(isInvalidAmount)
-  
-  sstore(slotAllowance, sub(allowance, amount))
-}
-
-fn TRANSFER_FROM<z0>() -> () {
-  from = calldataload(0x04)
-  receiver = calldataload(0x24)
-  amount = calldataload(0x44)
-
-  USE_ALLOWANCE(from, caller(), amount)
-
-  balanceSender = sload(from)
-
-  newSenderBalance = SAFE_SUB(balanceSender, amount)
-  sstore(from, newSenderBalance)
-
-  balanceReceiver = sload(receiver)
-  newBalanceReceiver = add(balanceReceiver, amount)
-
-  sstore(receiver, newBalanceReceiver)
-
-  mstore(z0, amount)
-  log3(z0, 0x20, _TRANSFER_EVENT_SIGNATURE, caller(), receiver)
-  // return true
-  //mstore(0x01, z0)
-  //return(z0, 0x20)
-}
-
-*/
