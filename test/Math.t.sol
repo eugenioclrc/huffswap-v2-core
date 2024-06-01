@@ -8,15 +8,13 @@ import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 using {compile} for Vm;
 
-
 interface ISafeMathMock {
     error Overflow();
     error DivitionByZero();
     error MulDivFailed();
-    
 
-    function safeAdd(uint256,uint256) external view returns (uint256);
-    function safeSub(uint256,uint256) external view returns (uint256);
+    function safeAdd(uint256, uint256) external view returns (uint256);
+    function safeSub(uint256, uint256) external view returns (uint256);
     function safeMul(uint256, uint256) external view returns (uint256);
     function safeDiv(uint256, uint256) external view returns (uint256);
     function mulDiv(uint256, uint256, uint256) external view returns (uint256);
@@ -24,7 +22,6 @@ interface ISafeMathMock {
 }
 
 contract MathTest is Test {
-
     ISafeMathMock math;
 
     function setUp() public {
@@ -64,7 +61,7 @@ contract MathTest is Test {
         assertEq(math.safeAdd(x, y), x + y);
     }
 
-        function test_safeSubSimple() public {
+    function test_safeSubSimple() public {
         vm.expectRevert(ISafeMathMock.Overflow.selector);
         math.safeSub(0, 1);
         assertEq(math.safeSub(1, 0), 1);
@@ -77,7 +74,7 @@ contract MathTest is Test {
             math.safeSub(x, y);
         } else {
             unchecked {
-                uint256 res = x-y;
+                uint256 res = x - y;
                 assertEq(math.safeSub(x, y), res);
             }
         }
@@ -122,7 +119,6 @@ contract MathTest is Test {
         }
     }
 
-
     function testMulDiv() public {
         assertEq(math.mulDiv(2.5e27, 0.5e27, 1e27), 1.25e27);
         assertEq(math.mulDiv(2.5e18, 0.5e18, 1e18), 1.25e18);
@@ -157,10 +153,10 @@ contract MathTest is Test {
                 return;
             }
         }
-        
+
         uint256 result = math.mulDiv(x, y, denominator);
         assertEq(result, (x * y) / denominator);
-        
+
         uint256 expectedResult = FixedPointMathLib.mulDiv(x, y, denominator);
         assertEq(result, expectedResult);
     }

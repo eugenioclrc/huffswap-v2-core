@@ -6,7 +6,6 @@ import {compile} from "./Deploy.sol";
 
 using {compile} for Vm;
 
-
 interface IToken {
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
@@ -14,11 +13,11 @@ interface IToken {
     function totalSupply() external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
     function allowance(address owner, address spender) external view returns (uint256);
-    
+
     function approve(address spender, uint256 amount) external returns (bool);
     function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
-    
+
     function mint(address to, uint256 amount) external;
     function burn(address from, uint256 amount) external;
 
@@ -36,7 +35,6 @@ interface IToken {
     error Overflow();
     error Spender_onApprovalReceived_rejected();
     error Receiver_transferReceived_rejected();
-    
 }
 
 contract PayableTokenTest is Test {

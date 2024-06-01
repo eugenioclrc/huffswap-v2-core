@@ -6,7 +6,6 @@ import {compile} from "./Deploy.sol";
 
 using {compile} for Vm;
 
-
 interface IToken {
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
@@ -14,11 +13,11 @@ interface IToken {
     function totalSupply() external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
     function allowance(address owner, address spender) external view returns (uint256);
-    
+
     function approve(address spender, uint256 amount) external returns (bool);
     function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
-    
+
     function mint(address to, uint256 amount) external;
     function burn(address from, uint256 amount) external;
 
@@ -31,7 +30,6 @@ interface IToken {
 }
 
 contract TokenTest is Test {
-
     IToken token;
 
     function setUp() public {
@@ -52,9 +50,9 @@ contract TokenTest is Test {
 
     function test_allowance(address owner, address spender, uint256 amount) public {
         assertEq(token.allowance(owner, spender), 0);
-        
+
         vm.expectEmit(true, true, true, true);
-        emit IToken.Approval(owner, spender, amount);        
+        emit IToken.Approval(owner, spender, amount);
         vm.prank(owner);
         assertTrue(token.approve(spender, amount));
 
@@ -83,11 +81,11 @@ contract TokenTest is Test {
 
     function testMintAndBurn(address from, uint256 amountMint, uint256 amountBurn) public {
         assertEq(token.totalSupply(), 0);
-        
+
         vm.expectEmit(true, true, true, true);
         emit IToken.Transfer(address(0), from, amountMint);
         token.mint(from, amountMint);
-        
+
         assertEq(token.totalSupply(), amountMint);
 
         if (amountBurn > amountMint) {
@@ -100,11 +98,12 @@ contract TokenTest is Test {
             vm.expectEmit(true, true, true, true);
             emit IToken.Transfer(from, address(0), amountBurn);
             token.burn(from, amountBurn);
-            
+
             assertEq(token.balanceOf(from), amountMint - amountBurn);
             assertEq(token.totalSupply(), amountMint - amountBurn);
         }
     }
+
     function testBurnInsufficientBalance(address to, uint256 mintAmount, uint256 burnAmount) public {
         mintAmount = bound(mintAmount, 0, type(uint256).max - 1);
         burnAmount = bound(burnAmount, mintAmount + 1, type(uint256).max);
@@ -140,7 +139,7 @@ contract TokenTest is Test {
     function testTransferFromInsufficientAllowance(address to, uint256 approval, uint256 amount) public {
         amount = bound(amount, 1, type(uint256).max);
         approval = bound(approval, 0, amount - 1);
-        
+
         address from = makeAddr("from");
         token.mint(from, amount);
 
@@ -156,7 +155,7 @@ contract TokenTest is Test {
         sendAmount = bound(sendAmount, mintAmount + 1, type(uint256).max);
 
         address from = makeAddr("from");
-        
+
         token.mint(from, mintAmount);
 
         vm.prank(from);
@@ -179,13 +178,13 @@ contract TokenTest is Test {
 
         assertEq(token.allowance(from, address(this)), approval);
         assertTrue(token.transferFrom(from, to, amountTransfer));
-        
+
         uint256 newAllowance = approval == type(uint256).max ? approval : approval - amountTransfer;
         console.log("infinity?", approval == type(uint256).max);
         console.log("newAllowance", newAllowance);
 
         assertEq(token.allowance(from, address(this)), newAllowance);
-        
+
         assertEq(token.totalSupply(), amount);
 
         if (from == to) {
