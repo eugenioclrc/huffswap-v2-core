@@ -1,0 +1,27 @@
+extern _REQUIRE(z0, err) stack(1, 0) reads(CONTROL_FLOW)
+
+const SIG_onTransferReceived
+
+fn _TRANSFER_FROM_HOOK<z0>(from, to) -> () {
+    calldatacopy(0x64, 0x64, sub(calldatasize(), 0x64))
+    
+    shiftedFunctionSig = shl(0xe0, SIG_onTransferReceived)
+    mstore(z0, shiftedFunctionSig)
+    mstore(0x04, caller()) // spender
+    mstore(0x24, from)
+    //mstore(0x44, amount)
+    mstore(0x64, 0x80)
+
+    // calldatasize + 0x60 is an overestimation of the calldata size, for empty bytes edgecase
+    size = add(calldatasize(), 0x60)
+    callOk = call(gas(), to, z0, z0, size, z0, 0x20)
+    
+
+    // error Receiver_transferReceived_rejected() = 0x85b16394
+    _REQUIRE<z0, 0x85b16394>(callOk)
+    ret = mload(z0)
+    // error Receiver_transferReceived_rejected() = 0x85b16394
+    // __FUNC_SIG("onTransferReceived(address,address,uint256,bytes)") 0xe0 shl
+    _REQUIRE<z0, 0x85b16394>(eq(ret, shiftedFunctionSig))
+}
+

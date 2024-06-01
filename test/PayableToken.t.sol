@@ -311,19 +311,33 @@ contract PayableTokenTest is Test {
 
     function testTransferFromAndCallWorkEmpty() public {
         address EOA = makeAddr("EOA");
-        expectedOperator = address(this);
+        address spender = makeAddr("spender");
+        
+        expectedOperator = spender;
         expectedFrom = EOA;
         expectedBytes = "";
+        expectedAmount = 1 ether;
 
         shouldReceiveOk = true;
 
-        token.mint(EOA, 2 ether);
+        token.mint(EOA, 3 ether);
 
         vm.prank(EOA);
-        token.approve(address(this), 2 ether);
+        token.approve(spender, 2 ether);
 
-        token.transferFromAndCall(EOA, address(this), 1 ether);
+        vm.startPrank(spender);
         token.transferFromAndCall(EOA, address(this), 1 ether, "");
+        token.transferFromAndCall(EOA, address(this), 1 ether);
+        vm.expectRevert(IToken.InsufficientAllowance.selector);
+        token.transferFromAndCall(EOA, address(this), 1 ether);
+        vm.stopPrank();
+
+        vm.prank(EOA);
+        token.approve(spender, 1 ether);
+        expectedBytes = "GM!";
+        
+        vm.prank(spender);
+        token.transferFromAndCall(EOA, address(this), 1 ether, "GM!");
     }
 
     function onApprovalReceived(address owner, uint256 amount, bytes calldata b) external returns (bytes4) {
