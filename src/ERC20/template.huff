@@ -23,10 +23,6 @@
 #define function transfer(address,uint256) nonpayable returns ()
 #define function transferFrom(address,address,uint256) nonpayable returns ()
 
-// ERC1363 Payable token
-#define function approveAndCall(address,uint256,bytes) nonpayable returns ()
-#define function transferAndCall(address,uint256,bytes) nonpayable returns ()
-
 // Events
 #define event Approval(address indexed, address indexed, uint256)
 #define event Transfer(address, address, uint256)

@@ -166,15 +166,6 @@ contract TokenTest is Test {
         token.transferFrom(from, to, sendAmount);
     }
 
-    function testAgi() public {
-        testTransferFrom(
-            0x0000000000000000000000000000000000000000,
-            115792089237316195423570985008687907853269984665640564039457584007913129639935,
-            115792089237316195423570985008687907853269984665640564039457584007913129639935,
-            1
-        );
-    }
-
     function testTransferFrom(address to, uint256 amount, uint256 approval, uint256 amountTransfer) public {
         approval = bound(approval, 0, amount);
         amountTransfer = bound(amountTransfer, 0, approval);

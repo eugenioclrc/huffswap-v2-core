@@ -1,0 +1,106 @@
+#include "../ERC1363/main.huff"
+#include "../libraries/Errors.huff"
+
+
+#define function name() nonpayable returns (string)
+#define function symbol() nonpayable returns (string)
+#define function decimals() nonpayable returns (uint256)
+
+#define function totalSupply() nonpayable returns (uint256)
+#define function balanceOf(address owner) nonpayable returns (uint256)
+
+#define function approve(address spender, uint256 amount) nonpayable returns (bool)
+#define function allowance(address owner, address spender) nonpayable returns (uint256 amount)
+
+#define function transfer(address to, uint256 amount) nonpayable returns (bool)
+#define function transferFrom(address from, address to, uint256 amount) nonpayable returns (bool)
+
+#define function transfer(address to, uint256 amount) nonpayable returns (bool)
+
+
+#define function mint(address to, uint256 amount) nonpayable returns()
+#define function burn(address to, uint256 amount) nonpayable returns()
+
+
+#define macro MAIN() = takes (1) returns (1) {
+    // Identify which function is being called.
+    0x00 calldataload 0xE0 shr          // [func_sig]
+
+    dup1 __FUNC_SIG(name)                 eq nameJump             jumpi
+    dup1 __FUNC_SIG(symbol)               eq symbolJump           jumpi
+    dup1 __FUNC_SIG(decimals)             eq decimalsJump         jumpi
+    dup1 __FUNC_SIG(approve)              eq approveJump          jumpi
+    dup1 __FUNC_SIG(allowance)            eq allowanceJump        jumpi
+
+    dup1 __FUNC_SIG(totalSupply)          eq totalSupplyJump      jumpi
+    dup1 __FUNC_SIG(balanceOf)            eq balanceOfJump        jumpi
+
+    dup1 __FUNC_SIG(transfer)             eq transferJump         jumpi
+    dup1 __FUNC_SIG(transferFrom)         eq transferFromJump     jumpi
+    
+    dup1 __FUNC_SIG(mint)                 eq mintJump             jumpi
+    dup1 __FUNC_SIG(burn)                 eq burnJump             jumpi
+
+    
+    //dup1 __FUNC_SIG("approveAndCall(address,uint256,bytes)") eq approveAndCallJump          jumpi
+    //dup1 __FUNC_SIG("approveAndCall(address,uint256)") eq approveAndCallJumpEmpty          jumpi
+    
+    dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)") eq transferAndCallJump        jumpi
+    dup1 __FUNC_SIG("transferAndCall(address,uint256)") eq transferAndCallJump              jumpi
+
+
+    0xffffffff 0x00 mstore
+    0x04 0x1c revert
+
+
+    nameJump:
+      NAME(0x00)
+
+    symbolJump:
+      SYMBOL(0x00)
+    
+    decimalsJump:
+      DECIMALS(0x00)      
+
+    approveJump:
+      APPROVE(0x00)
+
+    allowanceJump:
+      ALLOWANCE(0x00)
+
+    totalSupplyJump:
+      TOTAL_SUPPLY(0x00)
+
+    balanceOfJump:
+      BALANCE_OF(0x00)
+
+    transferAndCallJump:
+      TRANSFER_AND_CALL(0x00)
+
+
+    mintJump:
+      0x24 calldataload           // [amount]
+      0x04 calldataload           // [amount, to]
+      [ADDRESS_MASK] and
+
+      // takes:                      [amount, to]
+      _MINT(0x00)
+      stop
+
+    burnJump:
+      0x24 calldataload           // [amount]
+      0x04 calldataload           // [amount, to]
+      [ADDRESS_MASK] and
+      
+
+      // takes:                      [amount, to]
+      _BURN(0x00)
+      stop
+
+    transferJump:
+      TRANSFER(0x00)
+
+    transferFromJump:
+      TRANSFER_FROM(0x00)
+}
+

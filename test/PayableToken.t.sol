@@ -1,0 +1,182 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import {Test, console, Vm} from "forge-std/Test.sol";
+import {compile} from "./Deploy.sol";
+
+using {compile} for Vm;
+
+
+interface IToken {
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
+    function decimals() external view returns (uint8);
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
+    
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    
+    function mint(address to, uint256 amount) external;
+    function burn(address from, uint256 amount) external;
+
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    function approveAndCall(address, uint256, bytes memory) external returns (bool);
+    function approveAndCall(address, uint256) external returns (bool);
+
+    function transferAndCall(address, uint256, bytes memory) external returns (bool);
+    function transferAndCall(address, uint256) external returns (bool);
+
+    error InsufficientBalance();
+    error InsufficientAllowance();
+    error Overflow();
+    error Spender_onApprovalReceived_rejected();
+    error Receiver_transferReceived_rejected();
+    
+}
+
+contract PayableTokenTest is Test {
+
+    bool shouldReceiveOk;
+
+    address expectedApprovalOwner;
+    address expectedOperator;
+    address expectedFrom;
+    uint256 expectedAmount = 1 ether;
+    bytes expectedBytes;
+
+    IToken token;
+
+    function setUp() public {
+        bytes memory bytecode = vm.compile("src/mocks/PayableToken.huff");
+        /// @solidity memory-safe-assembly
+        IToken _token;
+        assembly {
+            _token := create(0, add(bytecode, 0x20), mload(bytecode))
+        }
+        token = _token;
+    }
+
+
+function testTransferAndCallRevertsEmpty() public {
+        address EOA = makeAddr("EOA");
+        EmptyContract empty = new EmptyContract();
+
+        token.mint(EOA, 1 ether);
+
+        vm.startPrank(EOA);
+
+        vm.expectRevert(IToken.InsufficientBalance.selector);
+        token.transferAndCall(address(this), 1 ether + 1);
+
+        vm.expectRevert(IToken.Receiver_transferReceived_rejected.selector);
+        token.transferAndCall(address(empty), 1 ether);
+
+        vm.expectRevert(IToken.Receiver_transferReceived_rejected.selector);
+        token.transferAndCall(address(this), 1 ether);
+
+        // addr of precompiled contracts in https://book.getfoundry.sh/misc/precompile-registry
+        address precompiledContract = address(0x02);
+        vm.expectRevert(IToken.Receiver_transferReceived_rejected.selector);
+        token.transferAndCall(address(0x02), 1 ether);
+
+        vm.stopPrank();
+    }
+
+    function testTransferAndCallReverts(bytes memory data) public {
+        address EOA = makeAddr("EOA");
+        EmptyContract empty = new EmptyContract();
+
+        token.mint(EOA, 1 ether);
+
+        vm.startPrank(EOA);
+        vm.expectRevert(IToken.InsufficientBalance.selector);
+        token.transferAndCall(address(this), 1 ether + 1, data);
+
+        vm.expectRevert(IToken.Receiver_transferReceived_rejected.selector);
+        token.transferAndCall(address(empty), 1 ether, data);
+
+        vm.expectRevert(IToken.Receiver_transferReceived_rejected.selector);
+        token.transferAndCall(address(this), 1 ether, data);
+
+        vm.expectRevert(IToken.InsufficientBalance.selector);
+        token.transferAndCall(address(this), 1 ether + 1, data);
+
+        // addr of precompiled contracts in https://book.getfoundry.sh/misc/precompile-registry
+        address precompiledContract = address(0x02);
+        vm.expectRevert(IToken.Receiver_transferReceived_rejected.selector);
+        token.transferAndCall(address(0x02), 1 ether, data);
+
+        vm.stopPrank();
+    }
+
+    function testTransferAndCallWork() public {
+        address EOA = makeAddr("EOA");
+        shouldReceiveOk = true;
+        expectedOperator = EOA;
+        expectedFrom = EOA;
+        expectedBytes = "GM!";
+        
+
+        token.mint(EOA, 2 ether);
+
+        vm.prank(EOA);
+        token.transferAndCall(address(this), 1 ether, "GM!");
+        
+        expectedBytes = "This is a extra long byte data, longer than 32 bytes, te ensure that woks fine";
+        vm.prank(EOA);
+        token.transferAndCall(address(this), 1 ether, expectedBytes);
+
+        vm.stopPrank();
+    }
+
+    function testTransferAndCallWorkEmpty() public {
+        address EOA = makeAddr("EOA");
+        expectedOperator = EOA;
+        expectedFrom = EOA;
+        expectedBytes = "";
+        
+        shouldReceiveOk = true;
+
+        token.mint(EOA, 1 ether);
+
+        vm.prank(EOA);
+        token.transferAndCall(address(this), 1 ether);
+
+        token.transfer(EOA, 1 ether);
+
+        vm.prank(EOA);
+        token.transferAndCall(address(this), 1 ether, "");
+    }
+
+
+    function onApprovalReceived(address owner, uint256 amount, bytes calldata b) external returns (bytes4) {
+        assertEq(amount, expectedAmount, "wrong amount");
+        assertEq(owner, expectedApprovalOwner, "wrong approval owner");
+        assertEq(b, expectedBytes, "wrong byte data");
+        if (shouldReceiveOk) {
+            return this.onApprovalReceived.selector;
+        }
+    }
+
+    function onTransferReceived(address operator, address from, uint256 amount, bytes memory b)
+        external
+        returns (bytes4)
+    {
+        if (shouldReceiveOk) {
+            assertEq(amount, expectedAmount, "wrong amount");
+            assertEq(operator, expectedOperator, "wrong operator and from");
+            assertEq(from, expectedFrom, "wrong operator and from");
+            assertEq(b, expectedBytes, "wrong byte data");
+
+            return this.onTransferReceived.selector;
+        }
+    }
+}
+
+contract EmptyContract {}
+
