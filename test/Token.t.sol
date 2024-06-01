@@ -16,7 +16,8 @@ interface IToken {
     function allowance(address owner, address spender) external view returns (uint256);
     
     function approve(address spender, uint256 amount) external returns (bool);
-    
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
     
     function mint(address to, uint256 amount) external;
     function burn(address from, uint256 amount) external;
@@ -102,6 +103,105 @@ contract TokenTest is Test {
             
             assertEq(token.balanceOf(from), amountMint - amountBurn);
             assertEq(token.totalSupply(), amountMint - amountBurn);
+        }
+    }
+    function testBurnInsufficientBalance(address to, uint256 mintAmount, uint256 burnAmount) public {
+        mintAmount = bound(mintAmount, 0, type(uint256).max - 1);
+        burnAmount = bound(burnAmount, mintAmount + 1, type(uint256).max);
+
+        token.mint(to, mintAmount);
+        vm.expectRevert(IToken.InsufficientBalance.selector);
+        token.burn(to, burnAmount);
+    }
+
+    function testTransferInsufficientBalance(address to, uint256 mintAmount, uint256 sendAmount) public {
+        mintAmount = bound(mintAmount, 0, type(uint256).max - 1);
+        sendAmount = bound(sendAmount, mintAmount + 1, type(uint256).max);
+
+        token.mint(address(this), mintAmount);
+        vm.expectRevert(IToken.InsufficientBalance.selector);
+        token.transfer(to, sendAmount);
+    }
+
+    function testTransfer(address to, uint256 amount) public {
+        token.mint(address(this), amount);
+
+        assertTrue(token.transfer(to, amount));
+
+        if (address(this) == to) {
+            assertEq(token.balanceOf(address(this)), amount);
+        } else {
+            assertEq(token.balanceOf(address(this)), 0);
+            assertEq(token.balanceOf(to), amount);
+        }
+        assertEq(token.totalSupply(), amount);
+    }
+
+    function testTransferFromInsufficientAllowance(address to, uint256 approval, uint256 amount) public {
+        amount = bound(amount, 1, type(uint256).max);
+        approval = bound(approval, 0, amount - 1);
+        
+        address from = makeAddr("from");
+        token.mint(from, amount);
+
+        vm.prank(from);
+        token.approve(address(this), approval);
+
+        vm.expectRevert(IToken.InsufficientAllowance.selector);
+        token.transferFrom(from, to, amount);
+    }
+
+    function testTransferFromInsufficientBalance(address to, uint256 mintAmount, uint256 sendAmount) public {
+        mintAmount = bound(mintAmount, 0, type(uint256).max - 1);
+        sendAmount = bound(sendAmount, mintAmount + 1, type(uint256).max);
+
+        address from = makeAddr("from");
+        
+        token.mint(from, mintAmount);
+
+        vm.prank(from);
+        token.approve(address(this), sendAmount);
+
+        vm.expectRevert(IToken.InsufficientBalance.selector);
+        token.transferFrom(from, to, sendAmount);
+    }
+
+    function testAgi() public {
+        testTransferFrom(
+            0x0000000000000000000000000000000000000000,
+            115792089237316195423570985008687907853269984665640564039457584007913129639935,
+            115792089237316195423570985008687907853269984665640564039457584007913129639935,
+            1
+        );
+    }
+
+    function testTransferFrom(address to, uint256 amount, uint256 approval, uint256 amountTransfer) public {
+        approval = bound(approval, 0, amount);
+        amountTransfer = bound(amountTransfer, 0, approval);
+
+        address from = makeAddr("from");
+
+        token.mint(from, amount);
+
+        vm.prank(from);
+        assertTrue(token.approve(address(this), approval));
+
+        assertEq(token.allowance(from, address(this)), approval);
+        assertTrue(token.transferFrom(from, to, amountTransfer));
+        
+        uint256 newAllowance = approval == type(uint256).max ? approval : approval - amountTransfer;
+        console.log("infinity?", approval == type(uint256).max);
+        console.log("newAllowance", newAllowance);
+
+        assertEq(token.allowance(from, address(this)), newAllowance);
+        
+        assertEq(token.totalSupply(), amount);
+
+        if (from == to) {
+            assertEq(token.balanceOf(from), amount);
+        } else {
+            assertEq(token.balanceOf(from), amount - amountTransfer);
+            assertEq(token.balanceOf(to), amountTransfer);
         }
     }
 }

@@ -1,5 +1,7 @@
 extern GET_SLOT_FROM_KEYS(z0) stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY)
-extern SAFE_SUB_ERR(z0, err) stack(2, 1)
+extern SAFE_SUB_ERR(z0, err) stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY,STORAGE)
+extern _SKIP_IF_INFINITY_ALLOWANCE(z0) stack(3, 0)
+// fn TERNARY(true_value, condition, false_value) -> (result) {
 
 const _APPROVAL_EVENT_SIGNATURE
 
@@ -32,8 +34,14 @@ fn _USE_ALLOWANCE<z0>(owner, spender, amount) -> () {
     allowanceSlot = GET_SLOT_FROM_KEYS<z0>(owner, spender)
     allowanceAmount = sload(allowanceSlot)
 
+    _SKIP_IF_INFINITY_ALLOWANCE<z0>(allowanceSlot, allowanceAmount, amount)
+}
+
+/*
+this has been rewritten in huff
+fn _SKIP_IF_INFINITY_ALLOWANCE<z0>(allowanceSlot, allowanceAmount, amount) -> (allowanceSlot, allowanceAmount, amount) {
     // `InsufficientAllowance()
     newAllowanceAmount = SAFE_SUB_ERR<z0, 0x13be252b>(allowanceAmount, amount)
-
     sstore(allowanceSlot, newAllowanceAmount)
 }
+*/

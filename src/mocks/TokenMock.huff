@@ -13,6 +13,7 @@
 #define function allowance(address owner, address spender) nonpayable returns (uint256 amount)
 
 #define function transfer(address to, uint256 amount) nonpayable returns (bool)
+#define function transferFrom(address from, address to, uint256 amount) nonpayable returns (bool)
 
 
 #define function mint(address to, uint256 amount) nonpayable returns()
@@ -32,7 +33,9 @@
     dup1 __FUNC_SIG(totalSupply)          eq totalSupplyJump      jumpi
     dup1 __FUNC_SIG(balanceOf)            eq balanceOfJump        jumpi
 
-    //dup1 __FUNC_SIG(transfer)             eq transferJump         jumpi
+    dup1 __FUNC_SIG(transfer)             eq transferJump         jumpi
+    dup1 __FUNC_SIG(transferFrom)         eq transferFromJump     jumpi
+    
     dup1 __FUNC_SIG(mint)                 eq mintJump             jumpi
     dup1 __FUNC_SIG(burn)                 eq burnJump             jumpi
 
@@ -81,7 +84,10 @@
       _BURN(0x00)
       stop
 
-    //transferJump:
-    //  TRANSFER(0x00)
+    transferJump:
+      TRANSFER(0x00)
+
+    transferFromJump:
+      TRANSFER_FROM(0x00)
 }
 
