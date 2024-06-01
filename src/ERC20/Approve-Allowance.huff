@@ -1,3 +1,5 @@
+// balls-insert-start
+
 #define macro _SKIP_IF_INFINITY_ALLOWANCE(z0) = takes(3) returns(3) {
     dup2 <z0> not eq skipInfityAllowanceJump jumpi
     // takes:                      [amount, allowanceAmount, allowanceSlot]

@@ -15,8 +15,9 @@ fn APPROVE_AND_CALL<z0>() -> () {
 
   sstore(slot, amount)
   
+  mstore(0x24, amount)
+  log3(0x24, 0x20, _APPROVAL_EVENT_SIGNATURE, caller(), spender)
   // split into functions because it was messing the memory
-  _APPROVE_SET_AMOUNT_AND_LOG(spender)
   
   _APPROVE_HOOK<z0>(spender)
   mstore(z0, 0x01)
@@ -24,12 +25,9 @@ fn APPROVE_AND_CALL<z0>() -> () {
 }
 
 
-fn _APPROVE_SET_AMOUNT_AND_LOG(spender) -> () reads(CONTROL_FLOW) writes(MEMORY) {
-  calldatacopy(0x24, 0x24, sub(calldatasize(), 0x24))
-  log3(0x24, 0x20, _APPROVAL_EVENT_SIGNATURE, caller(), spender)
-}
 
 fn _APPROVE_HOOK<z0>(spender) -> () reads(CONTROL_FLOW, MEMORY) {
+  calldatacopy(0x44, 0x44, sub(calldatasize(), 0x44))
   shiftedFunctionSig = shl(0xe0, SIG_onApprovalReceived)
   mstore(z0, shiftedFunctionSig)
   mstore(0x04, caller())

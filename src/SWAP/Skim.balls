@@ -1,0 +1,33 @@
+extern LOCK(z0) stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
+extern UNLOCK() stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
+extern BALANCE_OF() stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY)
+extern SAFE_TRANSFER() stack(3, 0) writes(CONTROL_FLOW)
+
+extern GET_RESERVE0() stack(1, 1) writes(CONTROL_FLOW)
+extern GET_RESERVE1() stack(1, 1) writes(CONTROL_FLOW)
+
+const PACKED_RESERVE_INFO
+const RESERVE1_OFFSET
+const TOKEN0
+const TOKEN1
+
+fn SKIM<z0>() -> () {
+  LOCK<z0>()
+  
+  packedReserveSlot = sload(PACKED_RESERVE_INFO)                                             // []
+  reserve0 = GET_RESERVE0(packedReserveSlot) // and(packedReserveSlot, 0xffffffffffffffffffffffffffff)   // [reserve0]
+  reserve1 = GET_RESERVE1(packedReserveSlot) // and(shr(RESERVE1_OFFSET, packedReserveSlot), 0xffffffffffffffffffffffffffff)   // [reserve1]
+  token0Balance = BALANCE_OF(TOKEN0, address())
+  token1Balance = BALANCE_OF(TOKEN1, address())
+
+  skim0 = sub(token0Balance, reserve0)
+  skim1 = sub(token1Balance, reserve1)
+
+  skimmer = calldataload(0x04)
+  SAFE_TRANSFER(TOKEN0, skimmer, skim0)
+  SAFE_TRANSFER(TOKEN1, skimmer, skim1)
+
+  UNLOCK()
+  stop()
+}
+

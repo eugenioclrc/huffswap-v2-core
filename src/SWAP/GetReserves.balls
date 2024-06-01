@@ -1,0 +1,31 @@
+const PACKED_RESERVE_INFO
+const RESERVE1_OFFSET
+const BLOCK_TIMESTAMP_LAST_OFFSET
+
+const TOKEN0
+const TOKEN1
+
+fn _GET_RESERVE0(packedReserveSlot) -> (reserve0) {
+  reserve0 = and(packedReserveSlot, 0xffffffffffffffffffffffffffff)
+}
+
+fn _GET_RESERVE1(packedReserveSlot) -> (reserve1) {
+  reserve1 = and(shr(RESERVE1_OFFSET, packedReserveSlot), 0xffffffffffffffffffffffffffff)
+}
+
+fn _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot) -> (blockTimestampLast) {
+  blockTimestampLast = shr(BLOCK_TIMESTAMP_LAST_OFFSET, packedReserveSlot)
+}
+
+fn GET_RESERVES<z0>() -> (reserve0, reserve1, blockTimestampLast) {
+  packedReserveSlot = sload(PACKED_RESERVE_INFO)
+  reserve0 = _GET_RESERVE0(packedReserveSlot)
+  reserve1 = _GET_RESERVE1(packedReserveSlot)
+  blockTimestampLast = _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot)
+
+  mstore(z0, reserve0)
+  mstore(0x20, reserve1)
+  mstore(0x40, blockTimestampLast)
+
+  return(z0, 0x60)
+}

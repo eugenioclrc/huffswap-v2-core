@@ -1,0 +1,130 @@
+/// @title HuffSwap Pair LP Token
+/// @notice SPDX-License-Identifier: MIT
+/// @author 0x4non
+/// @notice Some ideas were taken from Solmate, Solady and Huffmate
+
+// ERC1363, imports ERC20, SafeMath and Storage
+#include "../ERC1363/main.huff"
+#define macro ENCODE_UQ112() = takes(1) returns(1) {
+    // takes:                      [r]
+    0x10000000000000000000000000000
+    //                             [r, 0x10000000000000000000000000000]
+    mul                         // [mul(0x10000000000000000000000000000, r)]
+    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    //                             [mul(0x10000000000000000000000000000, r), maskUint224]
+    and                         // [encoded]
+    // returns:                    [encoded]
+}
+
+#define macro TEST_UQ() = takes(3) returns(1) {
+    // takes:                      [z, y, x]
+    ENCODE_UQ112()              // [z, y, ENCODE_UQ112<>(x)]
+    UQ_DIV()                    // [z, UQ_DIV<>(ENCODE_UQ112<>(x), y)]
+    mul                         // [result]
+    // returns:                    [result]
+}
+
+#define macro UQ_DIV() = takes(2) returns(1) {
+    // takes:                      [y, x]
+    div                         // [div(x, y)]
+    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    //                             [div(x, y), maskUint224]
+    and                         // [z]
+    // returns:                    [z]
+}
+
+#define macro _UPDATE(z0) = takes(4) returns(0) {
+    // takes:                      [reserve1, reserve0, balance1, balance0]
+    0xffffffffffffffffffffffffffff
+    //                             [reserve1, reserve0, balance1, balance0, 0xffffffffffffffffffffffffffff]
+    lt                          // [reserve1, reserve0, balance1, lt(0xffffffffffffffffffffffffffff, balance0)]
+    iszero                      // [reserve1, reserve0, balance1, iszero(lt(0xffffffffffffffffffffffffffff, balance0))]
+    _REQUIRE(<z0>, 0x35278d12)  // [reserve1, reserve0, balance1]
+    0xffffffffffffffffffffffffffff
+    //                             [reserve1, reserve0, balance1, 0xffffffffffffffffffffffffffff]
+    lt                          // [reserve1, reserve0, lt(0xffffffffffffffffffffffffffff, balance1)]
+    iszero                      // [reserve1, reserve0, iszero(lt(0xffffffffffffffffffffffffffff, balance1))]
+    _REQUIRE(<z0>, 0x35278d12)  // [reserve1, reserve0]
+    stop                        // [reserve1, reserve0]
+    pop                         // [reserve1]
+    pop                         // []
+    // returns:                    []
+}
+
+#define macro _UPDATE_CUMULATIVE() = takes(6) returns(6) {
+    // takes:                      [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed]
+    [P1CUMULATIVE_SLOT]         // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, P1CUMULATIVE_SLOT]
+    sload                       // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative]
+    dup2                        // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed]
+    dup3                        // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, timeElapsed]
+    dup8                        // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, timeElapsed, reserve0]
+    dup10                       // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, timeElapsed, reserve0, reserve1]
+    ENCODE_UQ112()              // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, timeElapsed, reserve0, ENCODE_UQ112<>(reserve1)]
+    UQ_DIV()                    // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, timeElapsed, UQ_DIV<>(ENCODE_UQ112<>(reserve1), reserve0)]
+    mul                         // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, p0]
+    [P0CUMULATIVE_SLOT]         // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, p0, P0CUMULATIVE_SLOT]
+    sload                       // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, p0, p0cumulative]
+    add                         // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, add(p0cumulative, p0)]
+    [P0CUMULATIVE_SLOT]         // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, add(p0cumulative, p0), P0CUMULATIVE_SLOT]
+    sstore                      // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed]
+    dup8                        // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, reserve1]
+    dup8                        // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, reserve1, reserve0]
+    ENCODE_UQ112()              // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, reserve1, ENCODE_UQ112<>(reserve0)]
+    UQ_DIV()                    // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, timeElapsed, UQ_DIV<>(ENCODE_UQ112<>(reserve0), reserve1)]
+    mul                         // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, p1cumulative, p1]
+    add                         // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, add(p1, p1cumulative)]
+    [P1CUMULATIVE_SLOT]         // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed, add(p1, p1cumulative), P1CUMULATIVE_SLOT]
+    sstore                      // [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed]
+    // returns:                    [reserve1, reserve0, balance1, balance0, slotPacked, timeElapsed]
+}
+#define macro GET_RESERVES(z0) = takes(0) returns(3) {
+    // takes:                      []
+    [PACKED_RESERVE_INFO]       // [PACKED_RESERVE_INFO]
+    sload                       // [packedReserveSlot]
+    dup1                        // [packedReserveSlot, packedReserveSlot]
+    _GET_RESERVE1()             // [packedReserveSlot, reserve1]
+    dup2                        // [packedReserveSlot, reserve1, packedReserveSlot]
+    _GET_BLOCK_TIMESTAMP_LAST()
+    //                             [packedReserveSlot, reserve1, blockTimestampLast]
+    swap2                       // [blockTimestampLast, reserve1, packedReserveSlot]
+    _GET_RESERVE0()             // [blockTimestampLast, reserve1, reserve0]
+    0x60                        // [blockTimestampLast, reserve1, reserve0, 0x60]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast]
+    dup3                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, reserve0]
+    <z0>                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, reserve0, z0]
+    mstore                      // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, reserve1]
+    0x20                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, reserve1, 0x20]
+    mstore                      // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast]
+    0x40                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, 0x40]
+    mstore                      // [blockTimestampLast, reserve1, reserve0, 0x60]
+    <z0>                        // [blockTimestampLast, reserve1, reserve0, 0x60, z0]
+    return                      // [blockTimestampLast, reserve1, reserve0]
+    // returns:                    [blockTimestampLast, reserve1, reserve0]
+}
+
+#define macro _GET_BLOCK_TIMESTAMP_LAST() = takes(1) returns(1) {
+    // takes:                      [packedReserveSlot]
+    [BLOCK_TIMESTAMP_LAST_OFFSET]
+    //                             [packedReserveSlot, BLOCK_TIMESTAMP_LAST_OFFSET]
+    shr                         // [blockTimestampLast]
+    // returns:                    [blockTimestampLast]
+}
+
+#define macro _GET_RESERVE0() = takes(1) returns(1) {
+    // takes:                      [packedReserveSlot]
+    0xffffffffffffffffffffffffffff
+    //                             [packedReserveSlot, 0xffffffffffffffffffffffffffff]
+    and                         // [reserve0]
+    // returns:                    [reserve0]
+}
+
+#define macro _GET_RESERVE1() = takes(1) returns(1) {
+    // takes:                      [packedReserveSlot]
+    [RESERVE1_OFFSET]           // [packedReserveSlot, RESERVE1_OFFSET]
+    shr                         // [shr(RESERVE1_OFFSET, packedReserveSlot)]
+    0xffffffffffffffffffffffffffff
+    //                             [shr(RESERVE1_OFFSET, packedReserveSlot), 0xffffffffffffffffffffffffffff]
+    and                         // [reserve1]
+    // returns:                    [reserve1]
+}

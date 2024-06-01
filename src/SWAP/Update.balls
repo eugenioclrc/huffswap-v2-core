@@ -1,0 +1,127 @@
+
+/*
+// solidity 0.8.4
+    function _update(uint256 balance0, uint256 balance1, uint112 _reserve0, uint112 _reserve1) public {
+        if (balance0 > type(uint112).max || balance1 > type(uint112).max) {
+            revert Uint112Overflow();
+        }
+
+        reserve0 = balance0;
+        reserve1 = balance1;
+        /// @dev max value for uint32 is 4294967295 = 7/feb/2106
+        blockTimestampLast = uint32(block.timestamp);
+
+        emit Sync(_balance0, _balance1);
+
+        unchecked {
+            uint32 timeElapsed = uint32(block.timestamp - blockTimestampLast); // overflow is desired
+            if (timeElapsed != 0 && _reserve0 != 0 && _reserve1 != 0) {
+                // * never overflows, and + overflow is desired
+                price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
+                price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
+            }
+        }
+        
+    }
+*/
+
+
+extern _REQUIRE(z0, err) stack(1, 0) reads(CONTROL_FLOW)
+extern MAX() stack(2, 1) reads(CONTROL_FLOW)
+
+const KLAST_SLOT
+const TOTAL_SUPPLY_SLOT
+const FACTORY
+const PACKED_RESERVE_SLOT
+const BLOCK_TIMESTAMP_LAST_OFFSET
+
+const P0CUMULATIVE_SLOT
+const P1CUMULATIVE_SLOT
+
+/*
+fn _main() -> (balance0, balance1, _reserve0, _reserve1) {
+  balance0 = calldataload(0x04)
+  balance1  = calldataload(0x24)
+  _reserve0   = calldataload(0x44)
+  _reserve1 = calldataload(0x64)
+    
+}
+*/
+fn _UPDATE<z0>(balance0, balance1, reserve0, reserve1) -> () {
+  // bytes4(keccak256("Overflow()")) == 0x35278d12
+  _REQUIRE<z0, 0x35278d12>(iszero(gt(balance0, 0xffffffffffffffffffffffffffff)))
+  _REQUIRE<z0, 0x35278d12>(iszero(gt(balance1, 0xffffffffffffffffffffffffffff)))
+  stop()
+  /*
+  option b
+
+  // bytes4(keccak256("Overflow()")) == 0x35278d12
+  _REQUIRE<z0, 0x35278d12>(iszero(gt(MAX(balance0, balance1), 0xffffffffffffffffffffffffffff)))
+  
+
+
+  stop()
+  //_REQUIRE(lt(balance0
+  /*
+  if (balance0 > type(uint112).max || balance1 > type(uint112).max) {
+    revert Uint112Overflow();
+  }
+  uint112 _balance0 = uint112(balance0); // gas savings
+  uint112 _balance1 = uint112(balance1); // gas savings
+  */
+/*
+
+  slotPacked = sload(PACKED_RESERVE_SLOT)
+  blockTimestampLast = shr(BLOCK_TIMESTAMP_LAST_OFFSET, slotPacked)
+  
+  timeElapsed = and(sub(timestamp(), blockTimestampLast), 0xffffffff) // uint32 mask
+  _UPDATE_CUMULATIVE(timeElapsed, slotPacked, balance0, balance1, _reserve0, _reserve1)
+
+  /*
+
+  unchecked {
+      uint32 timeElapsed = uint32(block.timestamp - blockTimestampLast); // overflow is desired
+      if (timeElapsed != 0 && _reserve0 != 0 && _reserve1 != 0) {
+          // * never overflows, and + overflow is desired
+          price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
+          price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
+      }
+  }
+  reserve0 = _balance0;
+  reserve1 = _balance1;
+  /// @dev max value for uint32 is 4294967295 = 7/feb/2106
+  blockTimestampLast = uint32(block.timestamp);
+
+  emit Sync(_balance0, _balance1);
+  */
+
+}
+
+
+fn _UPDATE_CUMULATIVE(timeElapsed, slotPacked, balance0, balance1, reserve0, reserve1) -> (timeElapsed, slotPacked, balance0, balance1, reserve0, reserve1) {
+  p0cumulative = sload(P0CUMULATIVE_SLOT)
+  p1cumulative = sload(P1CUMULATIVE_SLOT)
+
+  p0 = mul(UQ_DIV(ENCODE_UQ112(reserve1), reserve0), timeElapsed)
+  p1 = mul(UQ_DIV(ENCODE_UQ112(reserve0), reserve1), timeElapsed)
+
+
+  sstore(P0CUMULATIVE_SLOT, add(p0, p0cumulative))
+  sstore(P1CUMULATIVE_SLOT, add(p1, p1cumulative))
+
+}
+
+fn ENCODE_UQ112(r) -> (encoded) {
+  maskUint224 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+  encoded = and(mul(r, 0x10000000000000000000000000000), maskUint224)
+}
+
+fn UQ_DIV(x, y) -> (z) {
+  maskUint224 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+  z = and(div(x, y), maskUint224)
+}
+
+
+fn TEST_UQ(x, y, z) -> (result) {
+  result = mul(UQ_DIV(ENCODE_UQ112(x), y), z)
+}

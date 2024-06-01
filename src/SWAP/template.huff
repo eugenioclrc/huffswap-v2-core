@@ -1,0 +1,7 @@
+/// @title HuffSwap Pair LP Token
+/// @notice SPDX-License-Identifier: MIT
+/// @author 0x4non
+/// @notice Some ideas were taken from Solmate, Solady and Huffmate
+
+// ERC1363, imports ERC20, SafeMath and Storage
+#include "../ERC1363/main.huff"

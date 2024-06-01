@@ -1,0 +1,11 @@
+extern _REQUIRE(z0, ERR) stack(1, 0) reads(CONTROL_FLOW)
+
+fn balanceOf<z0>(token, account) -> (amount) {
+  mstore(z0, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
+  mstore(0x14, account) // Store the `account` argument.
+  
+  sucess = staticcall(gas(), token, 0x10, 0x24, z0, 0x20)
+  // ReadBalanceFail() = 0x3dd82487
+  _REQUIRE<z0, 0x3dd82487>(sucess)
+  amount = mload(z0)
+}
