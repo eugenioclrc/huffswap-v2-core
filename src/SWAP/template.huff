@@ -5,3 +5,5 @@
 
 // ERC1363, imports ERC20, SafeMath and Storage
 #include "../ERC1363/main.huff"
+
+#define event Sync(uint112 reserve0, uint112 reserve1)

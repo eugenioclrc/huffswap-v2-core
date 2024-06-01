@@ -61,10 +61,19 @@
     0x04 0x1c revert
 
     updateTestJump:
-      0x64 calldataload           // [reserve0]
-      0x44 calldataload           // [reserve0, reserve1]
-      0x24 calldataload           // [reserve0, reserve1, balance1]
-      0x04 calldataload           // [reserve0, reserve1, balance1, balance0]
+      [PACKED_RESERVE_SLOT] sload
+      // takes:                      [packedReserveSlot]
+      [BLOCK_TIMESTAMP_LAST_OFFSET]
+      //                             [packedReserveSlot, BLOCK_TIMESTAMP_LAST_OFFSET]
+      shr                         // [blockTimestampLast]
+    
+
+
+      0x64 calldataload           // [blockTimestampLast, reserve0]
+      0x44 calldataload           // [blockTimestampLast, reserve0, reserve1]
+      0x24 calldataload           // [blockTimestampLast, reserve0, reserve1, balance1]
+      0x04 calldataload           // [blockTimestampLast, reserve0, reserve1, balance1, balance0]
+
       
       _UPDATE(0x00)
       stop

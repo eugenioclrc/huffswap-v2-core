@@ -1,0 +1,26 @@
+
+fn _UPDATE_CUMULATIVE<z0>(timeElapsed, reserve0, reserve1) -> (timeElapsed, reserve0, reserve1) {
+  p0cumulative = sload(P0CUMULATIVE_SLOT)
+  p1cumulative = sload(P1CUMULATIVE_SLOT)
+
+  p0 = mul(UQ_DIV(ENCODE_UQ112(reserve1), reserve0), timeElapsed)
+  p1 = mul(UQ_DIV(ENCODE_UQ112(reserve0), reserve1), timeElapsed)
+
+
+  sstore(P0CUMULATIVE_SLOT, add(p0, p0cumulative))
+  sstore(P1CUMULATIVE_SLOT, add(p1, p1cumulative))
+}
+
+fn ENCODE_UQ112(r) -> (encoded) {
+  maskUint224 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+  encoded = and(mul(r, 0x10000000000000000000000000000), maskUint224)
+}
+
+fn UQ_DIV(x, y) -> (z) {
+  maskUint224 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+  z = and(div(x, y), maskUint224)
+}
+
+fn TEST_UQ(x, y, z) -> (result) {
+  result = mul(UQ_DIV(ENCODE_UQ112(x), y), z)
+}
