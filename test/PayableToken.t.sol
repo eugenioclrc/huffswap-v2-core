@@ -30,6 +30,9 @@ interface IToken {
     function transferAndCall(address, uint256, bytes memory) external returns (bool);
     function transferAndCall(address, uint256) external returns (bool);
 
+    function transferFromAndCall(address, address, uint256, bytes memory) external returns (bool);
+    function transferFromAndCall(address, address, uint256) external returns (bool);
+
     error InsufficientBalance();
     error InsufficientAllowance();
     error Overflow();
@@ -302,6 +305,23 @@ contract PayableTokenTest is Test {
 
         vm.prank(EOA);
         token.transferAndCall(address(this), 1 ether, "");
+    }
+
+    function testTransferFromAndCallWorkEmpty() public {
+        address EOA = makeAddr("EOA");
+        expectedOperator = address(this);
+        expectedFrom = EOA;
+        expectedBytes = "";
+
+        shouldReceiveOk = true;
+
+        token.mint(EOA, 2 ether);
+
+        vm.prank(EOA);
+        token.approve(address(this), 2 ether);
+
+        token.transferFromAndCall(EOA, address(this), 1 ether);
+        token.transferFromAndCall(EOA, address(this), 1 ether, "");
     }
 
     function onApprovalReceived(address owner, uint256 amount, bytes calldata b) external returns (bytes4) {

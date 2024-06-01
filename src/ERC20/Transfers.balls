@@ -1,6 +1,6 @@
 extern GET_SLOT_FROM_KEYS(z0) stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY)
 extern SAFE_SUB_ERR(z0, err) stack(2, 1)
-extern _USE_ALLOWANCE(z0) stack(3, 1) writes(CONTROL_FLOW)
+extern _USE_ALLOWANCE(z0) stack(3, 0) writes(CONTROL_FLOW)
 
 const _TRANSFER_EVENT_SIGNATURE
 const ADDRESS_MASK
@@ -39,17 +39,20 @@ fn TRANSFER_FROM<z0>() -> () {
 
     _USE_ALLOWANCE<z0>(from, caller(), amount)
 
+    _TRANSFER_FROM<z0, z0>(from, to, amount)
+
+    mstore(z0, 0x01)
+    return(z0, 0x20)
+}
+
+fn _TRANSFER_FROM<z0, memptr>(from, to, amount) -> () writes(MEMORY, CONTROL_FLOW) {
     fromBalance = sload(from)
-    
     // error InsufficientBalance() = 0xf4d678b8
     sstore(from, SAFE_SUB_ERR<z0, 0xf4d678b8>(fromBalance, amount))
 
     // impossible to overflow, total supply is 2^256 - 1, otherwise it would rever on mint while updating total supply
     sstore(to, add(sload(to), amount))
 
-    mstore(z0, amount)
-    log3(z0, 0x20, _TRANSFER_EVENT_SIGNATURE, from, to)
-
-    mstore(z0, 0x01)
-    return(z0, 0x20)
+    mstore(memptr, amount)
+    log3(memptr, 0x20, _TRANSFER_EVENT_SIGNATURE, from, to)
 }

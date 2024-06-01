@@ -20,7 +20,7 @@ fn APPROVE_AND_CALL<z0>() -> () {
   
   _APPROVE_HOOK<z0>(spender)
   mstore(z0, 0x01)
-  return(z0, 0x20)  
+  return(z0, 0x20)
 }
 
 

@@ -50,6 +50,7 @@
     dup1 __FUNC_SIG("transferAndCall(address,uint256)") eq transferAndCallJump              jumpi
 
     dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256,bytes)") eq transferFromAndCallJump  jumpi
+    dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256)") eq transferFromAndCallJump        jumpi
 
 
     0xffffffff 0x00 mstore

@@ -180,8 +180,6 @@ contract TokenTest is Test {
         assertTrue(token.transferFrom(from, to, amountTransfer));
 
         uint256 newAllowance = approval == type(uint256).max ? approval : approval - amountTransfer;
-        console.log("infinity?", approval == type(uint256).max);
-        console.log("newAllowance", newAllowance);
 
         assertEq(token.allowance(from, address(this)), newAllowance);
 
