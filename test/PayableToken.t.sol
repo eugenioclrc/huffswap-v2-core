@@ -38,7 +38,6 @@ interface IToken {
 }
 
 contract PayableTokenTest is Test {
-
     bool shouldReceiveOk;
 
     address expectedApprovalOwner;
@@ -59,8 +58,154 @@ contract PayableTokenTest is Test {
         token = _token;
     }
 
+    function testApproveAndCallEmpty() public {
+        shouldReceiveOk = false;
+        address EOA = makeAddr("EOA");
 
-function testTransferAndCallRevertsEmpty() public {
+        EmptyContract empty = new EmptyContract();
+        expectedApprovalOwner = EOA;
+        expectedBytes = hex"";
+
+        vm.startPrank(EOA);
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(empty), 1 ether);
+
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(this), 1 ether);
+
+        // EOA call silent fails, but cant return acknoledge
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(0xbeef), 1 ether);
+
+        vm.stopPrank();
+
+        shouldReceiveOk = true;
+        vm.startPrank(EOA);
+        assertTrue(token.approveAndCall(address(this), 1 ether));
+        vm.stopPrank();
+
+        assertEq(token.allowance(EOA, address(this)), 1 ether);
+
+        vm.expectRevert(IToken.InsufficientAllowance.selector);
+        token.transferFrom(EOA, address(0xdead), 10 ether);
+        vm.expectRevert(IToken.InsufficientBalance.selector);
+        token.transferFrom(EOA, address(0xdead), 1 ether);
+        assertEq(token.allowance(EOA, address(this)), 1 ether);
+
+        token.mint(EOA, 1 ether);
+        token.transferFrom(EOA, address(0xdead), 1 ether);
+
+        assertEq(token.allowance(EOA, address(this)), 0 ether);
+        assertEq(token.balanceOf(EOA), 0);
+        assertEq(token.balanceOf(address(0xdead)), 1 ether);
+    }
+
+    function testApproveAndCallRevert(uint256 amount, bytes memory data) public {
+        address EOA = makeAddr("EOA");
+
+        expectedApprovalOwner = EOA;
+        expectedBytes = data;
+        expectedAmount = amount;
+
+        EmptyContract empty = new EmptyContract();
+
+        vm.startPrank(EOA);
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(empty), amount);
+
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(this), amount);
+
+        // EOA call silent fails, but cant return acknoledge
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(0xbeef), amount);
+
+        vm.stopPrank();
+    }
+
+    function testApproveAndCallRevert(address spender, uint256 amount, bytes memory data) public {
+        expectedApprovalOwner = address(this);
+        expectedBytes = data;
+        expectedAmount = amount;
+
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(spender, amount, data);
+
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(spender, amount);
+
+        assertEq(token.allowance(address(this), spender), 0);
+    }
+
+    function testApproveAndCallEmptyRevert(uint256 amount) public {
+        address EOA = makeAddr("EOA");
+
+        expectedApprovalOwner = EOA;
+        expectedAmount = amount;
+
+        EmptyContract empty = new EmptyContract();
+
+        vm.startPrank(EOA);
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(empty), amount);
+
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(this), amount);
+
+        // EOA call silent fails, but cant return acknoledge
+        vm.expectRevert(IToken.Spender_onApprovalReceived_rejected.selector);
+        token.approveAndCall(address(0xbeef), amount);
+
+        vm.stopPrank();
+    }
+
+    function testApproveAndCall(uint256 amount, bytes memory data) public {
+        address EOA = makeAddr("EOA");
+        expectedBytes = data;
+        expectedAmount = amount;
+        expectedApprovalOwner = EOA;
+
+        uint256 minted = amount;
+        if (amount > 0) {
+            minted = bound(amount, 0, amount - 1);
+            token.mint(EOA, minted);
+        }
+
+        shouldReceiveOk = true;
+        vm.startPrank(EOA);
+        token.approveAndCall(address(this), amount, data);
+        vm.stopPrank();
+
+        assertEq(token.allowance(EOA, address(this)), amount);
+
+        if (amount != type(uint256).max && amount > 0) {
+            vm.expectRevert(IToken.InsufficientBalance.selector);
+            token.transferFrom(EOA, address(0xdead), amount);
+        }
+
+        assertEq(token.allowance(EOA, address(this)), amount);
+
+        token.mint(EOA, amount - minted);
+        assertEq(token.balanceOf(EOA), amount);
+
+        if (amount != type(uint256).max) {
+            vm.expectRevert(IToken.InsufficientAllowance.selector);
+            token.transferFrom(EOA, address(0xdead), amount + 1);
+        }
+
+        assertTrue(token.transferFrom(EOA, address(0xdead), amount));
+        assertEq(token.balanceOf(EOA), 0);
+        assertEq(token.balanceOf(address(0xdead)), amount);
+
+        if (amount != type(uint256).max) {
+            assertEq(token.allowance(EOA, address(this)), 0 ether);
+        } else {
+            // infinity approve
+            assertEq(token.allowance(EOA, address(this)), type(uint256).max);
+        }
+    }
+
+    function testTransferAndCallRevertsEmpty() public {
         address EOA = makeAddr("EOA");
         EmptyContract empty = new EmptyContract();
 
@@ -118,13 +263,12 @@ function testTransferAndCallRevertsEmpty() public {
         expectedOperator = EOA;
         expectedFrom = EOA;
         expectedBytes = "GM!";
-        
 
         token.mint(EOA, 2 ether);
 
         vm.prank(EOA);
         token.transferAndCall(address(this), 1 ether, "GM!");
-        
+
         expectedBytes = "This is a extra long byte data, longer than 32 bytes, te ensure that woks fine";
         vm.prank(EOA);
         token.transferAndCall(address(this), 1 ether, expectedBytes);
@@ -137,7 +281,7 @@ function testTransferAndCallRevertsEmpty() public {
         expectedOperator = EOA;
         expectedFrom = EOA;
         expectedBytes = "";
-        
+
         shouldReceiveOk = true;
 
         token.mint(EOA, 1 ether);
@@ -150,7 +294,6 @@ function testTransferAndCallRevertsEmpty() public {
         vm.prank(EOA);
         token.transferAndCall(address(this), 1 ether, "");
     }
-
 
     function onApprovalReceived(address owner, uint256 amount, bytes calldata b) external returns (bytes4) {
         assertEq(amount, expectedAmount, "wrong amount");
@@ -177,4 +320,3 @@ function testTransferAndCallRevertsEmpty() public {
 }
 
 contract EmptyContract {}
-

@@ -17,10 +17,7 @@ function compile(Vm vm, string memory _file) returns (bytes memory) {
 function bytes32ToString(bytes32 x) pure returns (string memory) {
     string memory result;
     for (uint256 j = 0; j < x.length; j++) {
-        result = string.concat(
-            result,
-            string(abi.encodePacked((uint8(x[j]) % 26) + 97))
-        );
+        result = string.concat(result, string(abi.encodePacked((uint8(x[j]) % 26) + 97)));
     }
     return result;
 }

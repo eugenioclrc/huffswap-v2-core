@@ -42,8 +42,8 @@
     dup1 __FUNC_SIG(burn)                 eq burnJump             jumpi
 
     
-    //dup1 __FUNC_SIG("approveAndCall(address,uint256,bytes)") eq approveAndCallJump          jumpi
-    //dup1 __FUNC_SIG("approveAndCall(address,uint256)") eq approveAndCallJumpEmpty          jumpi
+    dup1 __FUNC_SIG("approveAndCall(address,uint256,bytes)") eq approveAndCallJump          jumpi
+    dup1 __FUNC_SIG("approveAndCall(address,uint256)") eq approveAndCallJump          jumpi
     
     dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)") eq transferAndCallJump        jumpi
     dup1 __FUNC_SIG("transferAndCall(address,uint256)") eq transferAndCallJump              jumpi
@@ -76,6 +76,9 @@
 
     transferAndCallJump:
       TRANSFER_AND_CALL(0x00)
+
+    approveAndCallJump:
+      APPROVE_AND_CALL(0x00)
 
 
     mintJump:
