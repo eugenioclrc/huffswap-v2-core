@@ -95,14 +95,16 @@ contract PayableTokenTest is Test {
 
         assertEq(token.allowance(EOA, address(this)), 0.5 ether);
 
-        token.mint(EOA, 1 ether);
-
+        vm.expectRevert(IToken.InsufficientAllowance.selector);
+        token.transferFrom(EOA, address(0xdead), 10 ether);
         vm.expectRevert(IToken.InsufficientAllowance.selector);
         token.transferFrom(EOA, address(0xdead), 1 ether);
         assertEq(token.allowance(EOA, address(this)), 0.5 ether);
 
         vm.expectRevert(IToken.InsufficientBalance.selector);
-        token.transferFrom(EOA, address(0xdead), 2 ether);
+        token.transferFrom(EOA, address(0xdead), 0.5 ether);
+
+        token.mint(EOA, 1 ether);
 
         assertTrue(token.transferFrom(EOA, address(0xdead), 0.5 ether));
 
