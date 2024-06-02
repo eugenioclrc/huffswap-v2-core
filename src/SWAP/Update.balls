@@ -1,7 +1,6 @@
 extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern _UPDATE_CUMULATIVE_IFNEED(z0) stack(3, 0) reads(CONTROL_FLOW)
 
-const KLAST_SLOT
 const TOTAL_SUPPLY_SLOT
 const FACTORY
 const PACKED_RESERVE_SLOT
