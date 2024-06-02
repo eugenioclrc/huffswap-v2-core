@@ -1,6 +1,6 @@
 extern _REQUIRE(z0, ERR) stack(1, 0) reads(CONTROL_FLOW)
 
-fn balanceOf<z0>(token, account) -> (amount) {
+fn BALANCE_OF<z0>(token, account) -> (amount) {
   mstore(z0, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
   mstore(0x14, account) // Store the `account` argument.
   
