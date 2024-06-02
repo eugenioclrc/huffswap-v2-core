@@ -36,19 +36,26 @@
 
 extern _MINT_FEE_IF_NOT() stack(4, 0)
 extern SQRT() stack(1, 1)
-extern MUL_DIV() stack(3, 1) reads(CONTROL_FLOW)
+extern MIN() stack(2, 1) reads(CONTROL_FLOW)
+extern MUL_DIV(z0) stack(3, 1) reads(CONTROL_FLOW)
+extern SAFE_MUL(z0) stack(2, 1) writes(CONTROL_FLOW)
+extern SAFE_SUB_ERR(z0, err) stack(2, 1) writes(CONTROL_FLOW)
 extern _MINT() stack(2, 0) writes(STORAGE)
 extern _GET_RESERVE0() stack(1, 1)
 extern _GET_RESERVE1() stack(1, 1)
-extern UNLOCK() stack(0, 0)
-extern LOCK(z0) stack(0, 0)
-extern _MINT_CALCULATE(z0) stack(2, 1)
+extern UNLOCK() stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
+extern LOCK(z0) stack(0, 0) writes(CONTROL_FLOW, STORAGE)
+extern _MINT_CALCULATE(z0) stack(4, 1) writes(STORAGE)
 extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern ERC20_BALANCE_OF(z0) stack(2, 1)
 
 const KLAST_SLOT
 const TOTAL_SUPPLY_SLOT
 const PACKED_RESERVE_SLOT
+const MINIMUM_LIQUIDITY
 const FACTORY
+const TOKEN0
+const TOKEN1
 
 fn MINT<z0>() -> () {
   LOCK<z0>()
@@ -56,31 +63,116 @@ fn MINT<z0>() -> () {
   packedData = sload(PACKED_RESERVE_SLOT)
   reserve0 = _GET_RESERVE0(packedData)
   reserve1 = _GET_RESERVE1(packedData)
+  balance0 = ERC20_BALANCE_OF<z0>(TOKEN0, address())
+  balance1 = ERC20_BALANCE_OF<z0>(TOKEN1, address())
+  // ReservesOutOfSync() = 0x2a2ab278
+  amount0 = SAFE_SUB_ERR<z0, 0x2a2ab278>(balance0, reserve0)
+  amount1 = SAFE_SUB_ERR<z0, 0x2a2ab278>(balance1, reserve1)
   _MINT_FEE(reserve0, reserve1)
-  liquidityToMint = _MINT_CALCULATE<z0>(reserve0, reserve1)
+  sstore(KLAST_SLOT, SAFE_MUL<z0>(balance0, balance1))
+  liquidityToMint = _MINT_CALCULATE<z0>(amount0, amount1, reserve0, reserve1)
+  _MINT(to, liquidityToMint)
+  mstore(z0, liquidityToMint)
   UNLOCK()
+  return(z0, 0x20)
 }
 
-fn _MINT_FEE(reserve0, reserve1) -> () {
+fn _MINT_FEE(reserve0, reserve1) -> () writes(CONTROL_FLOW,STORAGE) {
   klast = sload(KLAST_SLOT)
   _MINT_FEE_IF_NOT(iszero(klast), klast, reserve0, reserve1)
 }
 
+/*
 // will use next function as template
-fn _auxTEMPLATE__MINT_FEE_IF_NOT(klast, reserve0, reserve1) -> (klast, reserve0, reserve1) {
+fn _auxTEMPLATE__MINT_FEE_IF_NOT<z0>(klast, reserve0, reserve1) -> (klast, reserve0, reserve1) {
   rootK = SQRT(mul(reserve0, reserve1))
   rootKLast = SQRT(klast)
   isGt = gt(rootK, rootKLast)
   // replace this _REQUIRE with jumpi
   _REQUIRE<0x00, 0xff>(isGt)
-  liquidity = _MINT_FEE_CALCULATE(rootKLast, rootK)
+  liquidity = _MINT_FEE_CALCULATE<z0>(rootKLast, rootK)
   _MINT(FACTORY, liquidity)
 }
+*/
 
-
-fn _MINT_FEE_CALCULATE(rootKLast, rootK) -> (liquidity) reads(CONTROL_FLOW) {
+fn _MINT_FEE_CALCULATE<z0>(rootKLast, rootK) -> (liquidity) reads(CONTROL_FLOW, STORAGE) {
   totalSupply = sload(TOTAL_SUPPLY_SLOT)
-  liquidity = MUL_DIV(totalSupply, sub(rootK, rootKLast), add(mul(rootK, 5), rootKLast))
+  liquidity = MUL_DIV<z0>(totalSupply, sub(rootK, rootKLast), add(mul(rootK, 5), rootKLast))
+}
+
+fn _CALC_LIQUIDITY_HAS_SUPPLY<z0>(amount0, amount1, reserve0, reserve1, totalSupply) -> (liquidityToMint) reads(CONTROL_FLOW) {
+  liquidityToMint = MIN(
+    MUL_DIV<z0>(amount0, totalSupply, reserve0), 
+    MUL_DIV<z0>(amount1, totalSupply, reserve1)
+  )
+}
+
+fn _CALC_LIQUIDITY_FIRST_DEPOSIT<z0>(amount0, amount1, reserve0, reserve1, totalSupply) -> (liquidityToMint) reads(CONTROL_FLOW) {
+  liquidityToMint = SQRT(SAFE_MUL<z0>(amount0, amount1))
+  // InsufficientLiquidity() = 0xbb55fd27
+  _REQUIRE<z0, 0xbb55fd27>(gt(liquidityToMint, MINIMUM_LIQUIDITY))
+  // safe sub because of previous `check`
+  liquidityToMint = sub(liquidityToMint, MINIMUM_LIQUIDITY)
+  
+  _MINT(z0, MINIMUM_LIQUIDITY)
 }
 
 
+/*
+
+/// 
+
+
+#define macro _CALC_LIQUIDITY_HAS_SUPPLY(z0) = takes(5) returns(2) {
+    // takes:                      [reserve1, reserve0, amount1, amount0, totalSupply]
+    swap1                       // [reserve1, reserve0, amount1, totalSupply, amount0]
+    swap3                       // [reserve1, amount0, amount1, totalSupply, reserve0]
+    swap2                       // [reserve1, amount0, reserve0, totalSupply, amount1]
+    dup4                        // [reserve1, amount0, reserve0, totalSupply, amount1, amount0]
+    swap5                       // [amount0, amount0, reserve0, totalSupply, amount1, reserve1]
+    dup3                        // [amount0, amount0, reserve0, totalSupply, amount1, reserve1, totalSupply]
+    dup3                        // [amount0, amount0, reserve0, totalSupply, amount1, reserve1, totalSupply, amount1]
+    MUL_DIV(<z0>)               // [amount0, amount0, reserve0, totalSupply, amount1, MUL_DIV<>(amount1, totalSupply, reserve1)]
+    swap4                       // [amount0, MUL_DIV<>(amount1, totalSupply, reserve1), reserve0, totalSupply, amount1, amount0]
+    SAFE_MUL(<z0>)              // [amount0, MUL_DIV<>(amount1, totalSupply, reserve1), reserve0, totalSupply, kLast]
+    swap4                       // [kLast, MUL_DIV<>(amount1, totalSupply, reserve1), reserve0, totalSupply, amount0]
+    MUL_DIV(<z0>)               // [kLast, MUL_DIV<>(amount1, totalSupply, reserve1), MUL_DIV<>(amount0, totalSupply, reserve0)]
+    MIN()                       // [kLast, liquidity]
+    dup1 iszero not minLiquidityIsOk jumpi
+      __FUNC_SIG("InsufficientLiquidity()") <z0> mstore
+      0x04 0x1c revert
+    minLiquidityIsOk:
+    // returns:                    [kLast, liquidity]
+}
+
+#define macro _CALC_LIQUIDITY_FIRST_DEPOSIT(z0) = takes(5) returns(2) {
+    // takes:                      [reserve1, reserve0, amount1, amount0, totalSupply]
+    pop                         // [reserve1, reserve0, amount1, amount0]
+    SAFE_MUL()                  // [reserve1, reserve0, kLast]
+    swap2                       // [kLast, reserve0, reserve1]
+    pop                         // [kLast, reserve0]
+    pop                         // [kLast]
+    dup1                        // [kLast, kLast]
+    SQRT()                      // [kLast, liquidity]
+    [MINIMUM_LIQUIDITY]         // [kLast, liquidity, MINIMUM_LIQUIDITY]  
+    dup2                        // [kLast, liquidity, MINIMUM_LIQUIDITY, liquidity]
+    [MINIMUM_LIQUIDITY]         // [kLast, liquidity, MINIMUM_LIQUIDITY, liquidity, MINIMUM_LIQUIDITY]
+    lt                          // [kLast, liquidity, MINIMUM_LIQUIDITY, check]
+    
+    minLiquidityFisrtDepositIsOk jumpi
+      __FUNC_SIG("InsufficientLiquidity()") <z0> mstore
+      0x04 0x1c revert
+    minLiquidityFisrtDepositIsOk:
+    
+    // stack:                   // [kLast, liquidity, MINIMUM_LIQUIDITY]
+    swap1                       // [kLast, MINIMUM_LIQUIDITY, liquidity]
+    sub // safe sub because of previous `check`
+    
+    [MINIMUM_LIQUIDITY] <z0> _MINT(<z0>)
+    // liquidity - MINIMUM_LIQUIDITY, because we minted MINIMUM_LIQUIDITY to address 0 
+    
+    // returns:                    [kLast, liquidityToMint]
+}
+
+
+*/
