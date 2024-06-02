@@ -126,6 +126,8 @@
     //                             []
     // returns:                    []
 }
+// balls-insert-start
+
 #define macro _SKIP_IF_INFINITY_ALLOWANCE(z0) = takes(3) returns(3) {
     dup2 <z0> not eq skipInfityAllowanceJump jumpi
     // takes:                      [amount, allowanceAmount, allowanceSlot]
@@ -140,7 +142,8 @@
     skipInfityAllowanceJump:
     pop pop pop
     // returns:                    []    
-}#define macro BALANCE_OF(z0) = takes(0) returns(0) {
+}
+#define macro BALANCE_OF(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
     0x4                         // [0x20, 0x4]
