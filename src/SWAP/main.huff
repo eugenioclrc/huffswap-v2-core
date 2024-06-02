@@ -226,7 +226,7 @@
     // stack here                  [reserve1, reserve0, klast, rootK, rootKLast]
     dup2                        // [reserve1, reserve0, klast, rootK, rootKLast, rootK]
     dup2                        // [reserve1, reserve0, klast, rootK, rootKLast, rootK, rootKLast]
-    _MINT_FEE_CALCULATE(z0)     // [reserve1, reserve0, klast, rootK, rootKLast, liquidity]
+    _MINT_FEE_CALCULATE(<z0>)   // [reserve1, reserve0, klast, rootK, rootKLast, liquidity]
     [FACTORY]                   // [reserve1, reserve0, klast, rootK, rootKLast, liquidity, FACTORY]
     _MINT()                 // [reserve1, reserve0, klast, rootK, rootKLast]
     skipMintFeeCalculation:
