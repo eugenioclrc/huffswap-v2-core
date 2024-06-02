@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, ERR) stack(1, 0) reads(CONTROL_FLOW)
+extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 
 fn balanceOf<z0>(token, account) -> (amount) {
   mstore(z0, 0x70a08231000000000000000000000000) // `balanceOf(address)`.

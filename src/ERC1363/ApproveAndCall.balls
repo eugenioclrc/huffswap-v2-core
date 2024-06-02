@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) reads(CONTROL_FLOW)
+extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern SAFE_SUB_ERR(z0, err) stack(2, 1)
 extern GET_SLOT_FROM_KEYS(z0) stack(2, 1) writes(CONTROL_FLOW)
 
