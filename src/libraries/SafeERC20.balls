@@ -1,6 +1,6 @@
 extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 
-fn balanceOf<z0>(token, account) -> (amount) {
+fn ERC20_BALANCE_OF<z0>(token, account) -> (amount) {
   mstore(z0, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
   mstore(0x14, account) // Store the `account` argument.
   
@@ -9,3 +9,8 @@ fn balanceOf<z0>(token, account) -> (amount) {
   _REQUIRE<z0, 0x3dd82487>(sucess)
   amount = mload(z0)
 }
+
+/*
+fn ERC20_TRANSFER<z0>(token, to, amount) {
+  mstore(z0, 0xa9059cbb
+*/
