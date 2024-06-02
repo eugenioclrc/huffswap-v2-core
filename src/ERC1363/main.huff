@@ -20,6 +20,9 @@
 
 #define constant ADDRESS_MASK = 0xffffffffffffffffffffffffffffffffffffffff
 
+
+
+// balls-insert-start
 #define macro TRANSFER_AND_CALL(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -100,6 +103,9 @@
     _REQUIRE(<z0>, 0x85b16394)  // []
     // returns:                    []
 }
+// balls-insert-end
+
+// balls-insert-start
 #define macro TRANSFER_FROM_AND_CALL(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -131,6 +137,9 @@
     return                      // []
     // returns:                    []
 }
+// balls-insert-end
+
+// balls-insert-start
 #define macro _DO_TRANSFER_FROM_CALL(z0) = takes(2) returns(0) {
     // takes:                      [shiftedFunctionSig, to]
     0x20                        // [shiftedFunctionSig, to, 0x20]
@@ -179,6 +188,9 @@
     //                             []
     // returns:                    []
 }
+// balls-insert-end
+
+// balls-insert-start
 #define macro APPROVE_AND_CALL(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -246,3 +258,4 @@
     _REQUIRE(<z0>, 0x81cbe4db)  // []
     // returns:                    []
 }
+// balls-insert-end

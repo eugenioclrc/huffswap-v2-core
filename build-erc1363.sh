@@ -1,8 +1,18 @@
-cat src/ERC1363/template.huff                                        > src/ERC1363/main.huff
-balls src/ERC1363/TransferAndCall.balls -d             | head -n -1 >> src/ERC1363/main.huff
-balls src/ERC1363/TransferFromAndCall.balls -d         | head -n -1 >> src/ERC1363/main.huff
-balls src/ERC1363/TransferFromAndCallHook.balls -d     | head -n -1 >> src/ERC1363/main.huff
-balls src/ERC1363/ApproveAndCall.balls -d              | head -n -1 >> src/ERC1363/main.huff
+
+balls src/ERC1363/TransferAndCall.balls -d --output-path src/ERC1363/TransferAndCall.huff
+balls src/ERC1363/TransferFromAndCall.balls -d --output-path src/ERC1363/TransferFromAndCall.huff
+balls src/ERC1363/TransferFromAndCallHook.balls -d --output-path src/ERC1363/TransferFromAndCallHook.huff
+balls src/ERC1363/ApproveAndCall.balls -d --output-path src/ERC1363/ApproveAndCall.huff
+
+cat src/ERC1363/template.huff                 > src/ERC1363/main.huff
+echo "\n"                                    >> src/ERC1363/main.huff
+cat src/ERC1363/TransferAndCall.huff         >> src/ERC1363/main.huff
+echo "\n"                                    >> src/ERC1363/main.huff
+cat src/ERC1363/TransferFromAndCall.huff     >> src/ERC1363/main.huff
+echo "\n"                                    >> src/ERC1363/main.huff
+cat src/ERC1363/TransferFromAndCallHook.huff >> src/ERC1363/main.huff
+echo "\n"                                    >> src/ERC1363/main.huff
+cat src/ERC1363/ApproveAndCall.huff          >> src/ERC1363/main.huff
 
 
 sed -i "s/\[_APPROVAL_EVENT_SIGNATURE\]/__EVENT_HASH(Approval)/g" src/ERC1363/main.huff

@@ -1,12 +1,15 @@
-cat src/SWAP/template.huff                                        > src/SWAP/main.huff
-
+balls src/SWAP/GetReserves.balls -d --output-path src/SWAP/GetReserves.huff
 balls src/SWAP/Update.balls -d --output-path src/SWAP/Update.huff
-cat src/SWAP/Update.huff                                         >> src/SWAP/main.huff
-
 balls src/SWAP/Mint.balls -d --output-path src/SWAP/Mint.huff
-cat src/SWAP/Mint.huff                                           >> src/SWAP/main.huff
 
-balls src/SWAP/GetReserves.balls -d                 | head -n -1 >> src/SWAP/main.huff
+cat src/SWAP/template.huff        > src/SWAP/main.huff
+echo "\n"                        >> src/SWAP/main.huff
+cat src/SWAP/GetReserves.huff    >> src/SWAP/main.huff
+echo "\n"                        >> src/SWAP/main.huff
+cat src/SWAP/Update.huff         >> src/SWAP/main.huff
+echo "\n"                        >> src/SWAP/main.huff
+cat src/SWAP/Mint.huff           >> src/SWAP/main.huff
+  
 
 
 sed -i "s/\[_APPROVAL_EVENT_SIGNATURE\]/__EVENT_HASH(Approval)/g" src/SWAP/main.huff

@@ -33,6 +33,9 @@
 
 #define constant ADDRESS_MASK = 0xffffffffffffffffffffffffffffffffffffffff
 
+
+
+ 
 #define macro DECIMALS(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -72,6 +75,25 @@
     return                      // []
     // returns:                    []
 }
+ 
+
+#define macro _SKIP_IF_INFINITY_ALLOWANCE(z0) = takes(3) returns(3) {
+    dup2 <z0> not eq skipInfityAllowanceJump jumpi
+    // takes:                      [amount, allowanceAmount, allowanceSlot]
+    dup3                        // [amount, allowanceAmount, allowanceSlot, amount]
+    dup3                        // [amount, allowanceAmount, allowanceSlot, amount, allowanceAmount]
+    // reduce allowance, revert if allowance is underflow
+    SAFE_SUB_ERR(<z0>, 0x13be252b)
+    //                             [amount, allowanceAmount, allowanceSlot, newAllowanceAmount]
+    dup2                        // [amount, allowanceAmount, allowanceSlot, newAllowanceAmount, allowanceSlot]
+    sstore                      // [amount, allowanceAmount, allowanceSlot]
+    // returns:                    [amount, allowanceAmount, allowanceSlot]
+    skipInfityAllowanceJump:
+    pop pop pop
+    // returns:                    []    
+}
+
+ 
 #define macro ALLOWANCE(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -126,23 +148,9 @@
     //                             []
     // returns:                    []
 }
-// balls-insert-start
+ 
 
-#define macro _SKIP_IF_INFINITY_ALLOWANCE(z0) = takes(3) returns(3) {
-    dup2 <z0> not eq skipInfityAllowanceJump jumpi
-    // takes:                      [amount, allowanceAmount, allowanceSlot]
-    dup3                        // [amount, allowanceAmount, allowanceSlot, amount]
-    dup3                        // [amount, allowanceAmount, allowanceSlot, amount, allowanceAmount]
-    // reduce allowance, revert if allowance is underflow
-    SAFE_SUB_ERR(<z0>, 0x13be252b)
-    //                             [amount, allowanceAmount, allowanceSlot, newAllowanceAmount]
-    dup2                        // [amount, allowanceAmount, allowanceSlot, newAllowanceAmount, allowanceSlot]
-    sstore                      // [amount, allowanceAmount, allowanceSlot]
-    // returns:                    [amount, allowanceAmount, allowanceSlot]
-    skipInfityAllowanceJump:
-    pop pop pop
-    // returns:                    []    
-}
+ 
 #define macro BALANCE_OF(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -246,6 +254,9 @@
     log3                        // []
     // returns:                    []
 }
+ 
+
+ 
 #define macro TOTAL_SUPPLY(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -310,3 +321,4 @@
     log3                        // []
     // returns:                    []
 }
+ 
