@@ -142,6 +142,174 @@
     // returns:                    []
 }
 // balls-insert-end
+
+// extern _MINT_FEE_IF_NOT() stack(3, 0)
+#define macro _MINT_FEE_IF_NOT(z0) = takes(3) returns(0) {
+    // takes:                           [reserve1, reserve0, klast, iszero(klast)]
+    endMintFeeZeroCheck jumpi
+    
+    // takes:                      [reserve1, reserve0, klast]
+    dup3                        // [reserve1, reserve0, klast, reserve1]
+    dup3                        // [reserve1, reserve0, klast, reserve1, reserve0]
+
+    // cant overflow (reserve are uint112); 0xffffffffffffffffffffffffffff * 0xffffffffffffffffffffffffffff = 0x00000000fffffffffffffffffffffffffffe0000000000000000000000000001
+    mul                         // [reserve1, reserve0, klast, mul(reserve0, reserve1)]
+    SQRT()                      // [reserve1, reserve0, klast, rootK]
+    dup2                        // [reserve1, reserve0, klast, rootK, klast]
+    SQRT()                      // [reserve1, reserve0, klast, rootK, rootKLast]
+    dup2                        // [reserve1, reserve0, klast, rootK, rootKLast, rootK]
+    dup2                        // [reserve1, reserve0, klast, rootK, rootKLast, rootK, rootKLast]
+    lt                          // [reserve1, reserve0, klast, rootK, rootKLast, isGt]
+    iszero
+    skipMintFeeCalculation jumpi
+    // stack here                  [reserve1, reserve0, klast, rootK, rootKLast]
+    dup2                        // [reserve1, reserve0, klast, rootK, rootKLast, rootK]
+    dup2                        // [reserve1, reserve0, klast, rootK, rootKLast, rootK, rootKLast]
+    _MINT_FEE_CALCULATE(z0)     // [reserve1, reserve0, klast, rootK, rootKLast, liquidity]
+    [FACTORY]                   // [reserve1, reserve0, klast, rootK, rootKLast, liquidity, FACTORY]
+    _MINT(<z0>)                     // [reserve1, reserve0, klast, rootK, rootKLast]
+    jump endMintFeeZeroCheck:
+    // stack here                  [reserve1, reserve0, klast, rootK, rootKLast]
+    pop                         // [reserve1, reserve0, klast, rootK]
+    pop                         // [reserve1, reserve0, klast]
+    // returns:                    [reserve1, reserve0, klast]
+
+    endMintFeeZeroCheck:
+    
+    // expected stack:                           [reserve1, reserve0, klast]
+    pop
+    pop
+    pop
+}
+
+
+#define macro _MINT_CALCULATE(z0) = takes(4) returns(2) {
+    // takes:                      [reserve1, reserve0, amount1, amount0]
+    [TOTAL_SUPPLY_SLOT]         // [reserve1, reserve0, amount1, amount0, TOTAL_SUPPLY_SLOT]
+    sload                       // [reserve1, reserve0, amount1, amount0, totalSupply]
+
+    dup1 iszero firstDepositJump jumpi
+    // stack:                      [reserve1, reserve0, amount1, amount0, totalSupply]
+    // calculate liquidity for mint knowing that totalSupply > 0
+    _CALC_LIQUIDITY_HAS_SUPPLY(<z0>)
+    // stack: [liquidityToMint]
+    endCalcLiquidity jump
+
+    firstDepositJump:
+    // stack:                      [reserve1, reserve0, amount1, amount0, totalSupply]
+    _CALC_LIQUIDITY_FIRST_DEPOSIT(<z0>)
+    // stack: [liquidityToMint]
+    
+    endCalcLiquidity:
+    // returns:                    [liquidityToMint]
+}
+
+
+// balls-insert-start
+#define macro MINT(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    [PACKED_RESERVE_SLOT]       // [0x20, PACKED_RESERVE_SLOT]
+    LOCK(<z0>)                  // [0x20, PACKED_RESERVE_SLOT]
+    sload                       // [0x20, packedData]
+    dup1                        // [0x20, packedData, packedData]
+    _GET_RESERVE1()             // [0x20, packedData, reserve1]
+    swap1                       // [0x20, reserve1, packedData]
+    _GET_RESERVE0()             // [0x20, reserve1, reserve0]
+    address                     // [0x20, reserve1, reserve0, address()]
+    [TOKEN0]                    // [0x20, reserve1, reserve0, address(), TOKEN0]
+    ERC20_BALANCE_OF(<z0>)      // [0x20, reserve1, reserve0, balance0]
+    dup2                        // [0x20, reserve1, reserve0, balance0, reserve0]
+    dup2                        // [0x20, reserve1, reserve0, balance0, reserve0, balance0]
+    SAFE_SUB_ERR(<z0>, 0x2a2ab278)
+    //                             [0x20, reserve1, reserve0, balance0, amount0]
+    address                     // [0x20, reserve1, reserve0, balance0, amount0, address()]
+    [TOKEN1]                    // [0x20, reserve1, reserve0, balance0, amount0, address(), TOKEN1]
+    ERC20_BALANCE_OF(<z0>)      // [0x20, reserve1, reserve0, balance0, amount0, balance1]
+    dup5                        // [0x20, reserve1, reserve0, balance0, amount0, balance1, reserve1]
+    dup2                        // [0x20, reserve1, reserve0, balance0, amount0, balance1, reserve1, balance1]
+    SAFE_SUB_ERR(<z0>, 0x2a2ab278)
+    //                             [0x20, reserve1, reserve0, balance0, amount0, balance1, amount1]
+    swap3                       // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0]
+    dup6                        // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0, reserve1]
+    dup6                        // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0, reserve1, reserve0]
+    _MINT_FEE()                 // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0]
+    SAFE_MUL(<z0>)              // [0x20, reserve1, reserve0, amount1, amount0, SAFE_MUL<z0>(balance0, balance1)]
+    [KLAST_SLOT]                // [0x20, reserve1, reserve0, amount1, amount0, SAFE_MUL<z0>(balance0, balance1), KLAST_SLOT]
+    sstore                      // [0x20, reserve1, reserve0, amount1, amount0]
+    _MINT_CALCULATE(<z0>)       // [0x20, liquidityToMint]
+    dup1                        // [0x20, liquidityToMint, liquidityToMint]
+    0x4                         // [0x20, liquidityToMint, liquidityToMint, 0x4]
+    calldataload                // [0x20, liquidityToMint, liquidityToMint, to]
+    _MINT()                     // [0x20, liquidityToMint]
+    UNLOCK()                    // [0x20, liquidityToMint]
+    <z0>                        // [0x20, liquidityToMint, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro _CALC_LIQUIDITY_FIRST_DEPOSIT(z0) = takes(5) returns(1) {
+    // takes:                      [totalSupply, reserve1, reserve0, amount1, amount0]
+    SAFE_MUL(<z0>)              // [totalSupply, reserve1, reserve0, SAFE_MUL<z0>(amount0, amount1)]
+    SQRT()                      // [totalSupply, reserve1, reserve0, liquidityToMint]
+    [MINIMUM_LIQUIDITY]         // [totalSupply, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY]
+    dup2                        // [totalSupply, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY, liquidityToMint]
+    sub                         // [totalSupply, reserve1, reserve0, liquidityToMint, liquidityToMint]
+    swap4                       // [liquidityToMint, reserve1, reserve0, liquidityToMint, totalSupply]
+    pop                         // [liquidityToMint, reserve1, reserve0, liquidityToMint]
+    [MINIMUM_LIQUIDITY]         // [liquidityToMint, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY]
+    <z0>                        // [liquidityToMint, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY, z0]
+    _MINT()                     // [liquidityToMint, reserve1, reserve0, liquidityToMint]
+    [MINIMUM_LIQUIDITY]         // [liquidityToMint, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY]
+    lt                          // [liquidityToMint, reserve1, reserve0, lt(MINIMUM_LIQUIDITY, liquidityToMint)]
+    _REQUIRE(<z0>, 0xbb55fd27)  // [liquidityToMint, reserve1, reserve0]
+    pop                         // [liquidityToMint, reserve1]
+    pop                         // [liquidityToMint]
+    // returns:                    [liquidityToMint]
+}
+
+#define macro _CALC_LIQUIDITY_HAS_SUPPLY(z0) = takes(5) returns(1) {
+    // takes:                      [totalSupply, reserve1, reserve0, amount1, amount0]
+    swap4                       // [amount0, reserve1, reserve0, amount1, totalSupply]
+    swap2                       // [amount0, reserve1, totalSupply, amount1, reserve0]
+    swap3                       // [amount0, reserve0, totalSupply, amount1, reserve1]
+    swap1                       // [amount0, reserve0, totalSupply, reserve1, amount1]
+    dup3                        // [amount0, reserve0, totalSupply, reserve1, amount1, totalSupply]
+    swap1                       // [amount0, reserve0, totalSupply, reserve1, totalSupply, amount1]
+    MUL_DIV(<z0>)               // [amount0, reserve0, totalSupply, MUL_DIV<z0>(amount1, totalSupply, reserve1)]
+    swap3                       // [MUL_DIV<z0>(amount1, totalSupply, reserve1), reserve0, totalSupply, amount0]
+    MUL_DIV(<z0>)               // [MUL_DIV<z0>(amount1, totalSupply, reserve1), MUL_DIV<z0>(amount0, totalSupply, reserve0)]
+    MIN()                       // [liquidityToMint]
+    // returns:                    [liquidityToMint]
+}
+
+#define macro _MINT_FEE() = takes(2) returns(0) {
+    // takes:                      [reserve1, reserve0]
+    [KLAST_SLOT]                // [reserve1, reserve0, KLAST_SLOT]
+    sload                       // [reserve1, reserve0, klast]
+    dup1                        // [reserve1, reserve0, klast, klast]
+    iszero                      // [reserve1, reserve0, klast, iszero(klast)]
+    _MINT_FEE_IF_NOT()          // []
+    // returns:                    []
+}
+
+#define macro _MINT_FEE_CALCULATE(z0) = takes(2) returns(1) {
+    // takes:                      [rootK, rootKLast]
+    dup2                        // [rootK, rootKLast, rootK]
+    0x5                         // [rootK, rootKLast, rootK, 0x5]
+    mul                         // [rootK, rootKLast, mul(0x5, rootK)]
+    dup2                        // [rootK, rootKLast, mul(0x5, rootK), rootKLast]
+    add                         // [rootK, rootKLast, add(rootKLast, mul(0x5, rootK))]
+    swap2                       // [add(rootKLast, mul(0x5, rootK)), rootKLast, rootK]
+    sub                         // [add(rootKLast, mul(0x5, rootK)), sub(rootK, rootKLast)]
+    [TOTAL_SUPPLY_SLOT]         // [add(rootKLast, mul(0x5, rootK)), sub(rootK, rootKLast), TOTAL_SUPPLY_SLOT]
+    sload                       // [add(rootKLast, mul(0x5, rootK)), sub(rootK, rootKLast), totalSupply]
+    MUL_DIV(<z0>)               // [liquidity]
+    // returns:                    [liquidity]
+}
+// balls-insert-end
 #define macro GET_RESERVES(z0) = takes(0) returns(3) {
     // takes:                      []
     [PACKED_RESERVE_INFO]       // [PACKED_RESERVE_INFO]
