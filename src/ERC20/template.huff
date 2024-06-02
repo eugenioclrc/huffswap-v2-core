@@ -3,9 +3,10 @@
 /// @author 0x4non
 /// @notice Some ideas were taken from Solmate, Solady and Huffmate
 
-#include "../libraries/SafeMath.huff"
-#include "../libraries/Hash.huff"
-#include "../Storage.huff"
+#include "src/Storage.huff"
+#include "src/libraries/SafeMath.huff"
+#include "src/libraries/Hash.huff"
+#include "src/libraries/Errors.huff"
 
 // Interface
 

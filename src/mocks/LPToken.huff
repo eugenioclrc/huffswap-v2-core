@@ -1,6 +1,4 @@
-#include "../SWAP/main.huff"
-#include "../libraries/Errors.huff"
-#include "Huff-Console/Console.huff"
+#include "src/SWAP/main.huff"
 
 
 #define function name() nonpayable returns (string)
@@ -19,7 +17,7 @@
 #define function transfer(address to, uint256 amount) nonpayable returns (bool)
 
 
-#define function mint(address to, uint256 amount) nonpayable returns()
+#define function mint(address to) nonpayable returns()
 #define function burn(address to, uint256 amount) nonpayable returns()
 
 #define function updateTest(uint256 balance0, uint256  balance1, uint112 reserve0, uint112 reserve1) nonpayable returns()
@@ -110,13 +108,7 @@
 
 
     mintJump:
-      0x24 calldataload           // [amount]
-      0x04 calldataload           // [amount, to]
-      [ADDRESS_MASK] and
-
-      // takes:                      [amount, to]
-      _MINT(0x00)
-      stop
+      MINT(0x00)      
 
     burnJump:
       0x24 calldataload           // [amount]

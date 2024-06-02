@@ -1,0 +1,21 @@
+#define macro ERC20_BALANCE_OF(z0) = takes(2) returns(1) {
+    // takes:                      [account, token]
+    swap1                       // [token, account]
+    0x14                        // [token, account, 0x14]
+    0x70a08231000000000000000000000000
+    //                             [token, account, 0x14, 0x70a08231000000000000000000000000]
+    <z0>                        // [token, account, 0x14, 0x70a08231000000000000000000000000, z0]
+    mstore                      // [token, account, 0x14]
+    mstore                      // [token]
+    <z0>                        // [token, z0]
+    0x24                        // [token, z0, 0x24]
+    0x10                        // [token, z0, 0x24, 0x10]
+    0x20                        // [token, z0, 0x24, 0x10, 0x20]
+    swap4                       // [0x20, z0, 0x24, 0x10, token]
+    gas                         // [0x20, z0, 0x24, 0x10, token, gas()]
+    staticcall                  // [sucess]
+    _REQUIRE(<z0>, 0x3dd82487)  // []
+    <z0>                        // [z0]
+    mload                       // [amount]
+    // returns:                    [amount]
+}

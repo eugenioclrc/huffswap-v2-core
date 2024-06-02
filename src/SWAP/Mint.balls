@@ -34,7 +34,7 @@
     }
   */
 
-extern _MINT_FEE_IF_NOT() stack(4, 0)
+extern _MINT_FEE_IF_NOT(z0) stack(4, 0)
 extern SQRT() stack(1, 1)
 extern MIN() stack(2, 1) reads(CONTROL_FLOW)
 extern MUL_DIV(z0) stack(3, 1) reads(CONTROL_FLOW)
@@ -68,7 +68,7 @@ fn MINT<z0>() -> () {
   // ReservesOutOfSync() = 0x2a2ab278
   amount0 = SAFE_SUB_ERR<z0, 0x2a2ab278>(balance0, reserve0)
   amount1 = SAFE_SUB_ERR<z0, 0x2a2ab278>(balance1, reserve1)
-  _MINT_FEE(reserve0, reserve1)
+  _MINT_FEE<z0>(reserve0, reserve1)
   sstore(KLAST_SLOT, SAFE_MUL<z0>(balance0, balance1))
   liquidityToMint = _MINT_CALCULATE<z0>(amount0, amount1, reserve0, reserve1)
   _MINT(to, liquidityToMint)
@@ -77,9 +77,9 @@ fn MINT<z0>() -> () {
   return(z0, 0x20)
 }
 
-fn _MINT_FEE(reserve0, reserve1) -> () writes(CONTROL_FLOW,STORAGE) {
+fn _MINT_FEE<z0>(reserve0, reserve1) -> () writes(CONTROL_FLOW,STORAGE) {
   klast = sload(KLAST_SLOT)
-  _MINT_FEE_IF_NOT(iszero(klast), klast, reserve0, reserve1)
+  _MINT_FEE_IF_NOT<z0>(iszero(klast), klast, reserve0, reserve1)
 }
 
 /*

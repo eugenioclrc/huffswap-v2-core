@@ -3,7 +3,7 @@
 /// @author 0x4non
 /// @notice Some ideas were taken from Solmate, Solady and Huffmate
 
-#include "../ERC20/main.huff"
+#include "src/ERC20/main.huff"
 
 // Interface
 

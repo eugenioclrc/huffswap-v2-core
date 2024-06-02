@@ -1,5 +1,4 @@
-#include "../ERC1363/main.huff"
-#include "../libraries/Errors.huff"
+#include "src/ERC1363/main.huff"
 #include "Huff-Console/Console.huff"
 
 

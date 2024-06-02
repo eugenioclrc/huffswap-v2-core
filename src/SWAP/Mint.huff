@@ -23,8 +23,8 @@
     dup2                        // [reserve1, reserve0, klast, rootK, rootKLast, rootK, rootKLast]
     _MINT_FEE_CALCULATE(z0)     // [reserve1, reserve0, klast, rootK, rootKLast, liquidity]
     [FACTORY]                   // [reserve1, reserve0, klast, rootK, rootKLast, liquidity, FACTORY]
-    _MINT(<z0>)                     // [reserve1, reserve0, klast, rootK, rootKLast]
-    jump endMintFeeZeroCheck:
+    _MINT()                 // [reserve1, reserve0, klast, rootK, rootKLast]
+    skipMintFeeCalculation:
     // stack here                  [reserve1, reserve0, klast, rootK, rootKLast]
     pop                         // [reserve1, reserve0, klast, rootK]
     pop                         // [reserve1, reserve0, klast]
@@ -89,7 +89,7 @@
     swap3                       // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0]
     dup6                        // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0, reserve1]
     dup6                        // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0, reserve1, reserve0]
-    _MINT_FEE()                 // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0]
+    _MINT_FEE(<z0>)             // [0x20, reserve1, reserve0, amount1, amount0, balance1, balance0]
     SAFE_MUL(<z0>)              // [0x20, reserve1, reserve0, amount1, amount0, SAFE_MUL<z0>(balance0, balance1)]
     [KLAST_SLOT]                // [0x20, reserve1, reserve0, amount1, amount0, SAFE_MUL<z0>(balance0, balance1), KLAST_SLOT]
     sstore                      // [0x20, reserve1, reserve0, amount1, amount0]
@@ -141,13 +141,13 @@
     // returns:                    [liquidityToMint]
 }
 
-#define macro _MINT_FEE() = takes(2) returns(0) {
+#define macro _MINT_FEE(z0) = takes(2) returns(0) {
     // takes:                      [reserve1, reserve0]
     [KLAST_SLOT]                // [reserve1, reserve0, KLAST_SLOT]
     sload                       // [reserve1, reserve0, klast]
     dup1                        // [reserve1, reserve0, klast, klast]
     iszero                      // [reserve1, reserve0, klast, iszero(klast)]
-    _MINT_FEE_IF_NOT()          // []
+    _MINT_FEE_IF_NOT(<z0>)      // []
     // returns:                    []
 }
 
