@@ -28,19 +28,40 @@ contract LpMintTest is Test {
     bytes32 constant LOCKED_SLOT = bytes32(uint256(0x010000000000000000000000000000000000000005));
 
     ILPToken lptoken;
+    ILPToken uni;
 
     function setUp() public {
-        bytes memory bytecode = vm.compile("src/mocks/LPTokenMint.huff");
+        bytes memory bytecode = vm.compile("src/LPToken.huff");
         /// @solidity memory-safe-assembly
         ILPToken _token;
         assembly {
             _token := create(0, add(bytecode, 0x20), mload(bytecode))
         }
         lptoken = _token;
+
+        
+        address factoryUni = makeAddr("FACTORY_UNI");
+        vm.mockCall(factoryUni, abi.encodeWithSignature("feeTo()"), abi.encode(factoryUni));
+        vm.startPrank(address(factoryUni));
+        address uniswapV2Pair = address(deployCode("test/UniswapV2Pair.json"));
+        (bool s, ) = uniswapV2Pair.call(abi.encodeWithSignature("initialize(address,address)", TOKEN0, TOKEN1));
+        require(s, "UniswapV2Pair: failed to initialize");
+        vm.stopPrank();
+        
+        uni = ILPToken(uniswapV2Pair);
+
+        vm.label(uniswapV2Pair, "UniswapV2Pair");
+        vm.label(address(_token), "HuffSwapV2Pair");
+
+        
     }
 
     function setBalance(address token, uint256 amount) internal {
         vm.mockCall(token, abi.encodeWithSignature("balanceOf(address)", address(lptoken)), abi.encode(amount));
+    }
+
+    function setBalanceUni(address token, uint256 amount) internal {
+        vm.mockCall(token, abi.encodeWithSignature("balanceOf(address)", address(uni)), abi.encode(amount));
     }
 
     function test_simpleMintInsufficientLiquidity(uint256 a, uint256 b) public {
@@ -90,5 +111,54 @@ contract LpMintTest is Test {
         assertEq(lptoken.balanceOf(user), 1);
         assertEq(lptoken.balanceOf(address(0)), 1000);
         assertEq(lptoken.totalSupply(), 1001);
+    }
+
+    function testMintFuzzDiferential(uint256 amount0, uint256 amount1, uint256 amount3, uint256 amount4) public {
+        amount3 = bound(amount3, 0, type(uint256).max - amount0);
+        amount4 = bound(amount4, 0, type(uint256).max - amount1);
+        setBalanceUni(TOKEN0, amount0);
+        setBalanceUni(TOKEN1, amount1);
+        setBalance(TOKEN0, amount0);
+        setBalance(TOKEN1, amount1);
+
+        address bob = makeAddr("bob");
+        address alice = makeAddr("alice");
+
+        (bool success, bytes memory ret) = address(uni).call(
+            abi.encodeWithSignature("mint(address)", bob)
+        );
+        if(!success) {
+            vm.expectRevert();
+            lptoken.mint(alice);
+            vm.expectRevert();
+            uni.mint(bob);
+        } else {
+            uint256 minted = lptoken.mint(alice);
+            assertEq(lptoken.balanceOf(alice), uni.balanceOf(bob));
+            assertEq(lptoken.totalSupply(), uni.totalSupply());
+            assertEq(minted, uni.balanceOf(bob));
+        }
+
+        // second mint!
+        setBalanceUni(TOKEN0, amount0 + amount3);
+        setBalanceUni(TOKEN1, amount1 + amount4);
+        setBalance(TOKEN0, amount0 + amount3);
+        setBalance(TOKEN1, amount1 + amount4);
+
+        (success, ret) = address(uni).call(
+            abi.encodeWithSignature("mint(address)", bob)
+        );
+        if(!success) {
+            vm.expectRevert();
+            lptoken.mint(alice);
+            vm.expectRevert();
+            uni.mint(bob);
+        } else {
+            lptoken.mint(alice);
+            assertEq(lptoken.balanceOf(alice), uni.balanceOf(bob));
+            assertEq(lptoken.totalSupply(), uni.totalSupply());
+        }
+
+        
     }
 }
