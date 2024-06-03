@@ -4,13 +4,20 @@ fn ERC20_BALANCE_OF<z0>(token, account) -> (amount) {
   mstore(z0, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
   mstore(0x14, account) // Store the `account` argument.
   
-  sucess = staticcall(gas(), token, 0x10, 0x24, z0, 0x20)
+  success = staticcall(gas(), token, 0x10, 0x24, z0, 0x20)
   // ReadBalanceFail() = 0x3dd82487
-  _REQUIRE<z0, 0x3dd82487>(sucess)
+  _REQUIRE<z0, 0x3dd82487>(success)
   amount = mload(z0)
 }
 
-/*
+
 fn ERC20_TRANSFER<z0>(token, to, amount) {
-  mstore(z0, 0xa9059cbb
-*/
+  mstore(z0, 0xa9059cbb000000000000000000000000)
+  mstore(0x14, to)
+  mstore(0x34, amount)
+
+  success = call(gas(), token, z0, 0x10, 0x44, z0, 0x20)
+  // TransferFailed() = 0x90b8ec18
+  _REQUIRE<z0, 0x90b8ec18>(or(success, eq(mload(z0), 0x01)))
+}
+
