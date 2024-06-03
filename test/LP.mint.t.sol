@@ -8,15 +8,8 @@ import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 using {compile} for Vm;
 
-interface ILPToken {
-    error Overflow();
-    error InsufficientLiquidity();
-
-    event Sync(uint112 reserve0, uint112 reserve1);
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    function mint(address to) external;
-}
+import {ILPToken} from "src/interfaces/ILPToken.sol";
+import {IERC20} from "src/interfaces/IERC20.sol";
 
 contract LpMintTest is Test {
     address constant FACTORY = address(uint160(0xdead));
@@ -83,9 +76,9 @@ contract LpMintTest is Test {
 
         vm.expectEmit(true, true, true, true);
         // loquidity burned to address 0 due first deposit
-        emit ILPToken.Transfer(address(0), address(0), 1000);
+        emit IERC20.Transfer(address(0), address(0), 1000);
         vm.expectEmit(true, true, true, true);
-        emit ILPToken.Transfer(address(0), user, 1);
+        emit IERC20.Transfer(address(0), user, 1);
 
         lptoken.mint(user);
     }
