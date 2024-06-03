@@ -35,4 +35,7 @@ interface ILPToken is IERC1363 {
     error InsufficientLiquidity();
     error SelectorNotFound();
     error NonPayable();
+
+    error ReadBalanceFail();
+    error TransferFailed();
 }
