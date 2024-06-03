@@ -1,39 +1,3 @@
-/*
-    // this low-level function should be called from a contract which performs important safety checks
-    function mint(address to) external nonReentrant returns (uint256 liquidity) {
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        uint256 balance0 = token0.balanceOf(address(this));
-        uint256 balance1 = token1.balanceOf(address(this));
-        uint256 amount0 = balance0 - _reserve0;
-        uint256 amount1 = balance1 - _reserve1;
-
-        _mintFee(_reserve0, _reserve1);
-        uint256 _totalSupply = totalSupply(); // gas savings, must be defined here since totalSupply can update in _mintFee
-        if (_totalSupply == 0) {
-            liquidity = (amount0 * amount1).sqrt();
-            if (liquidity <= MINIMUM_LIQUIDITY) revert ErrLatamswapInsufficientLiquidity();
-            // Previous if checks the overflow
-            unchecked {
-                liquidity -= MINIMUM_LIQUIDITY;
-            }
-            // permanently lock the first MINIMUM_LIQUIDITY tokens
-            _mint(address(0), MINIMUM_LIQUIDITY);
-        } else {
-            liquidity =
-                FixedPointMathLib.min(amount0.mulDiv(_totalSupply, _reserve0), amount1.mulDiv(_totalSupply, _reserve1));
-        }
-
-        if (liquidity == 0) revert ErrLatamswapInsufficientLiquidity();
-
-        _mint(to, liquidity);
-
-        _update(balance0, balance1, _reserve0, _reserve1);
-        // reserve0 and reserve1 are up-to-date
-        kLast = uint256(reserve0) * uint256(reserve1);
-        emit Mint(msg.sender, amount0, amount1);
-    }
-  */
-
 extern _MINT_FEE_IF_NOT(z0) stack(4, 0)
 extern SQRT() stack(1, 1)
 extern MIN() stack(2, 1) reads(CONTROL_FLOW)
