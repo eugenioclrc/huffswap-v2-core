@@ -60,7 +60,7 @@
                       not_found jump
               
               pivot000:
-                          // function approve(address,uint256) returns (bool)
+                      // function approve(address,uint256) returns (bool)
                       dup1 __FUNC_SIG(approve)  eq approveJump   jumpi
               
                       // function transferAndCall(address,uint256) returns (bool)
@@ -91,6 +91,8 @@
                       not_found jump
               
               pivot001:
+                      // function mint(address) returns (uint256)
+                      dup1 __FUNC_SIG(mint)  eq mintJump   jumpi
                       // function transferAndCall(address,uint256,bytes) returns (bool)
                       dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)")  eq transferAndCallJump   jumpi
               
@@ -114,7 +116,7 @@
                   
               // pivot010 cut on function burn(address) returns (uint256, uint256) 0x89afcb44
               dup1 __FUNC_SIG(burn) lt pivot010 jumpi
-                          // function mint(address) returns (uint256)
+                      // function mint(address) returns (uint256)
                       dup1 __FUNC_SIG(mint)  eq mintJump   jumpi
               
                       // function balanceOf(address) view returns (uint256)
