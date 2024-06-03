@@ -48,6 +48,10 @@ extern LOCK(z0) stack(0, 0) writes(CONTROL_FLOW, STORAGE)
 extern _MINT_CALCULATE(z0) stack(4, 1) writes(STORAGE)
 extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern ERC20_BALANCE_OF(z0) stack(2, 1)
+extern _UPDATE(z0) stack(5, 0) writes(CONTROL_FLOW, STORAGE)
+extern _GET_BLOCK_TIMESTAMP_LAST() stack(1, 1) writes(CONTROL_FLOW)
+
+const _MINT_EVENT_SIGNATURE
 
 const KLAST_SLOT
 const TOTAL_SUPPLY_SLOT
@@ -60,16 +64,28 @@ const TOKEN1
 fn MINT<z0>() -> () {
   LOCK<z0>()
   to = calldataload(0x04)
-  packedData = sload(PACKED_RESERVE_SLOT)
-  reserve0 = _GET_RESERVE0(packedData)
-  reserve1 = _GET_RESERVE1(packedData)
+  packedReserveSlot = sload(PACKED_RESERVE_SLOT)
+  
+  reserve0 = _GET_RESERVE0(packedReserveSlot)
+  reserve1 = _GET_RESERVE1(packedReserveSlot)
+  blockTimestampLast = _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot)
+  
   balance0 = ERC20_BALANCE_OF<z0>(TOKEN0, address())
   balance1 = ERC20_BALANCE_OF<z0>(TOKEN1, address())
+  
+  _UPDATE<z0>(balance0, balance1, reserve0, reserve1, blockTimestampLast)
+
   // ReservesOutOfSync() = 0x2a2ab278
   amount0 = SAFE_SUB_ERR<z0, 0x2a2ab278>(balance0, reserve0)
   amount1 = SAFE_SUB_ERR<z0, 0x2a2ab278>(balance1, reserve1)
+
+  mstore(z0, amount0)
+  mstore(0x20, amount1)
+  log2(z0, 0x40, _MINT_EVENT_SIGNATURE, caller())
+
   _MINT_FEE<z0>(reserve0, reserve1)
   sstore(KLAST_SLOT, SAFE_MUL<z0>(balance0, balance1))
+
   liquidityToMint = _MINT_CALCULATE<z0>(amount0, amount1, reserve0, reserve1)
   _MINT<z0>(to, liquidityToMint)
   mstore(z0, liquidityToMint)

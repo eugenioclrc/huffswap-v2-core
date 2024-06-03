@@ -75,11 +75,20 @@ contract LpMintTest is Test {
         setBalance(TOKEN1, 1000);
 
         vm.expectEmit(true, true, true, true);
-        // loquidity burned to address 0 due first deposit
+        emit ILPToken.Sync(1004, 1000);
+        vm.expectEmit(true, true, true, true);
+        emit ILPToken.Mint(address(this), 1004, 1000);
+
+        vm.expectEmit(true, true, true, true);
+        // liquidity burned to address 0 due first deposit
         emit IERC20.Transfer(address(0), address(0), 1000);
         vm.expectEmit(true, true, true, true);
         emit IERC20.Transfer(address(0), user, 1);
 
         lptoken.mint(user);
+
+        assertEq(lptoken.balanceOf(user), 1);
+        assertEq(lptoken.balanceOf(address(0)), 1000);
+        assertEq(lptoken.totalSupply(), 1001);
     }
 }
