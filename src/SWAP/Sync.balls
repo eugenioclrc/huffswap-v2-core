@@ -1,0 +1,34 @@
+extern LOCK(z0) stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
+extern UNLOCK() stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
+extern BALANCE_OF(z0) stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY)
+extern SAFE_TRANSFER() stack(3, 0) writes(CONTROL_FLOW)
+extern _UPDATE(z0) stack(5, 0) writes(CONTROL_FLOW, STORAGE)
+
+
+extern GET_RESERVE0() stack(1, 1) writes(CONTROL_FLOW)
+extern GET_RESERVE1() stack(1, 1) writes(CONTROL_FLOW)
+extern GET_BLOCK_TIMESTAMP_LAST() stack(1, 1) writes(CONTROL_FLOW)
+
+const PACKED_RESERVE_INFO
+const RESERVE1_OFFSET
+const TOKEN0
+const TOKEN1
+
+fn SYNC<z0>() -> () {
+  LOCK<z0>()
+  
+  packedReserveSlot = sload(PACKED_RESERVE_INFO)                                             // []
+  reserve0 = GET_RESERVE0(packedReserveSlot) // and(packedReserveSlot, 0xffffffffffffffffffffffffffff)   // [reserve0]
+  reserve1 = GET_RESERVE1(packedReserveSlot) // and(shr(RESERVE1_OFFSET, packedReserveSlot), 0xffffffffffffffffffffffffffff)   // [reserve1]
+  blockTimestampLast = GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot) // shr(RESERVE1_OFFSET, packedReserveSlot)   // [blockTimestampLast]
+  
+  balance0 = BALANCE_OF<z0>(TOKEN0, address())
+  balance1 = BALANCE_OF<z0>(TOKEN1, address())
+  // balance0, balance1, reserve0, reserve1, blockTimestampLast
+  _UPDATE<z0>(balance0, balance1, reserve0, reserve1, blockTimestampLast)
+  
+
+  UNLOCK()
+  stop()
+}
+

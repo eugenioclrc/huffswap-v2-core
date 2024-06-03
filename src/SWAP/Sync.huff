@@ -1,0 +1,26 @@
+// balls-insert-start
+#define macro SYNC(z0) = takes(0) returns(0) {
+    // takes:                      []
+    [TOKEN0]                    // [TOKEN0]
+    [PACKED_RESERVE_INFO]       // [TOKEN0, PACKED_RESERVE_INFO]
+    LOCK(<z0>)                  // [TOKEN0, PACKED_RESERVE_INFO]
+    sload                       // [TOKEN0, packedReserveSlot]
+    dup1                        // [TOKEN0, packedReserveSlot, packedReserveSlot]
+    GET_RESERVE0()              // [TOKEN0, packedReserveSlot, reserve0]
+    address                     // [TOKEN0, packedReserveSlot, reserve0, address()]
+    dup3                        // [TOKEN0, packedReserveSlot, reserve0, address(), packedReserveSlot]
+    GET_RESERVE1()              // [TOKEN0, packedReserveSlot, reserve0, address(), reserve1]
+    swap3                       // [TOKEN0, reserve1, reserve0, address(), packedReserveSlot]
+    GET_BLOCK_TIMESTAMP_LAST()  // [TOKEN0, reserve1, reserve0, address(), blockTimestampLast]
+    swap4                       // [blockTimestampLast, reserve1, reserve0, address(), TOKEN0]
+    BALANCE_OF(<z0>)            // [blockTimestampLast, reserve1, reserve0, balance0]
+    address                     // [blockTimestampLast, reserve1, reserve0, balance0, address()]
+    [TOKEN1]                    // [blockTimestampLast, reserve1, reserve0, balance0, address(), TOKEN1]
+    BALANCE_OF(<z0>)            // [blockTimestampLast, reserve1, reserve0, balance0, balance1]
+    swap1                       // [blockTimestampLast, reserve1, reserve0, balance1, balance0]
+    _UPDATE(<z0>)               // []
+    UNLOCK()                    // []
+    stop                        // []
+    // returns:                    []
+}
+// balls-insert-end
