@@ -132,14 +132,6 @@
     // returns:                    [encoded]
 }
 
-#define macro TEST_UQ() = takes(3) returns(1) {
-    // takes:                      [z, y, x]
-    ENCODE_UQ112()              // [z, y, ENCODE_UQ112<>(x)]
-    UQ_DIV()                    // [z, UQ_DIV<>(ENCODE_UQ112<>(x), y)]
-    mul                         // [result]
-    // returns:                    [result]
-}
-
 #define macro UQ_DIV() = takes(2) returns(1) {
     // takes:                      [y, x]
     div                         // [div(x, y)]
