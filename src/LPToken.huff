@@ -27,6 +27,7 @@
 #define function transferFrom(address,address,uint256) nonpayable returns (bool)
 #define function transferFromAndCall(address,address,uint256,bytes) nonpayable returns (bool)
 #define function transferFromAndCall(address,address,uint256) nonpayable returns (bool)
+#define function MINIMUM_LIQUIDITY() pure returns (uint256)
 
 
 // Function Dispatching
@@ -35,9 +36,8 @@
     // [func sig]
     <z0> calldataload 0xE0 shr
 
-
     // this is the most used function
-    dup1 __FUNC_SIG(swap) lt swapJump jumpi
+    dup1 __FUNC_SIG(swap) eq swapJump jumpi
     
     // pivot0 cut on function mint(address) returns (uint256) 0x6a627842
     dup1 __FUNC_SIG(mint) lt pivot0 jumpi
@@ -172,16 +172,20 @@
     
 
     not_found:
+      dup1 __FUNC_SIG(MINIMUM_LIQUIDITY) eq minLiquidityJump jumpi
+
       // Revert if no match is found.
       __FUNC_SIG("SelectorNotFound()") <z0> mstore
       0x04 0x1c revert
     
     swapJump:
       // @todo SWAP(<z0>)
+      0x01 0x00 revert
 
     // function supportsInterface(bytes4) view returns (bool) 
     supportsInterfaceJump:
       // @todo SUPPORTS_INTERFACE()
+      0x02 0x00 revert
     // function name() view returns (string) 
     nameJump:
       NAME(<z0>)
@@ -240,6 +244,7 @@
     // function burn(address) returns (uint256, uint256) 
     burnJump:
       // @todo BURN(<z0>)
+      0x03 0x00 revert
 
     // function symbol() view returns (string) 
     symbolJump:
@@ -252,6 +257,7 @@
     // function skim(address) 
     skimJump:
       // @todo SKIM(<z0>)
+      0x04 0x00 revert
 
     // function transferFromAndCall(address,address,uint256) returns (bool) 
     // function transferFromAndCall(address,address,uint256,bytes) returns (bool) 
@@ -265,11 +271,16 @@
     // function sync() 
     syncJump:
       // @todo SYNC(<z0>)
+      0x05 0x00 revert
+
+    minLiquidityJump:
+      [MINIMUM_LIQUIDITY] <z0> mstore
+      0x20 <z0> return
 }
 
 
 #define macro MAIN() = takes (0) returns (0) {
-  callvalue iszero nonPayableJUMP jumpi
+  callvalue nonPayableJUMP jumpi
   
   // call disptacher
   DISPATCHER(callvalue)
