@@ -154,9 +154,11 @@ contract LpMintTest is Test {
             vm.expectRevert();
             uni.mint(bob);
         } else {
-            lptoken.mint(alice);
+            uint256 minted = lptoken.mint(alice);
             assertEq(lptoken.balanceOf(alice), uni.balanceOf(bob));
             assertEq(lptoken.totalSupply(), uni.totalSupply());
+
+            assertEq(keccak256(abi.encode(minted)), keccak256(ret));
         }
 
         

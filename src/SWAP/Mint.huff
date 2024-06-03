@@ -158,6 +158,8 @@
     swap3                       // [MUL_DIV<z0>(amount1, totalSupply, reserve1), reserve0, totalSupply, amount0]
     MUL_DIV(<z0>)               // [MUL_DIV<z0>(amount1, totalSupply, reserve1), MUL_DIV<z0>(amount0, totalSupply, reserve0)]
     MIN()                       // [liquidityToMint]
+    dup1                        // [liquidityToMint, liquidityToMint]
+    _REQUIRE(<z0>, 0xbb55fd27)  // [liquidityToMint]
     // returns:                    [liquidityToMint]
 }
 
