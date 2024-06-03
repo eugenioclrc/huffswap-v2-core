@@ -16,7 +16,7 @@ interface ILPToken is IERC1363 {
     );
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    function MINIMUM_LIQUIDITY() external pure returns (uint);
+    function MINIMUM_LIQUIDITY() external pure returns (uint256);
 
     function factory() external view returns (address);
     function token0() external view returns (address);

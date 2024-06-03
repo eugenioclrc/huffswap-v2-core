@@ -19,7 +19,6 @@ contract LpTest is Test {
     // constants
     uint256 constant MINIMUM_LIQUIDITY = 0x3e8; // min liquidity = 1000;
 
-    
     ILPToken lptoken;
 
     function setUp() public {
