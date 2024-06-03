@@ -10,12 +10,11 @@ import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 interface ILPToken {
     error Overflow();
+
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    function updateTest(uint256 balance0, uint256  balance1, uint112 reserve0, uint112 reserve1) external;
-    
+    function updateTest(uint256 balance0, uint256 balance1, uint112 reserve0, uint112 reserve1) external;
 }
-
 
 contract MockUpdate is ILPToken {
     uint112 public reserve0;
@@ -23,8 +22,9 @@ contract MockUpdate is ILPToken {
     uint32 public blockTimestampLast;
     uint256 public price0CumulativeLast;
     uint256 public price1CumulativeLast;
+
     using UQ112x112 for uint224;
-  
+
     function updateState(bytes32 _state, uint256 _cumulative0, uint256 _cumulative1) public {
         assembly {
             sstore(0x00, _state)
@@ -33,7 +33,7 @@ contract MockUpdate is ILPToken {
         price1CumulativeLast = _cumulative1;
     }
 
-  function updateTest(uint256 balance0, uint256  balance1, uint112 _reserve0, uint112 _reserve1) public {
+    function updateTest(uint256 balance0, uint256 balance1, uint112 _reserve0, uint112 _reserve1) public {
         if (balance0 > type(uint112).max || balance1 > type(uint112).max) {
             revert Overflow();
         }
@@ -81,7 +81,7 @@ contract UpdateTest is Test {
     MockUpdate mock = new MockUpdate();
 
     function setUp() public {
-        bytes memory bytecode = vm.compile("src/mocks/LPToken.huff");
+        bytes memory bytecode = vm.compile("src/mocks/LPTokenUpdate.huff");
         /// @solidity memory-safe-assembly
         ILPToken _token;
         assembly {
@@ -99,16 +99,22 @@ contract UpdateTest is Test {
         vm.expectEmit(true, true, false, false);
         emit ILPToken.Sync(1, 1);
         lptoken.updateTest(1, 1, 1, 1);
-        
     }
 
-    
     bytes32 constant PACKED_RESERVE_SLOT = bytes32(uint256(0x0010000000000000000000000000000000000000002));
-    bytes32 constant P0CUMULATIVE_SLOT   = bytes32(uint256(0x0010000000000000000000000000000000000000003));
-    bytes32 constant P1CUMULATIVE_SLOT   = bytes32(uint256(0x0010000000000000000000000000000000000000004));
+    bytes32 constant P0CUMULATIVE_SLOT = bytes32(uint256(0x0010000000000000000000000000000000000000003));
+    bytes32 constant P1CUMULATIVE_SLOT = bytes32(uint256(0x0010000000000000000000000000000000000000004));
 
-
-    function test_CumulativePrice(uint112 _reserve0, uint112 _reserve1, uint112 balance0, uint112 balance1, bytes32 initState, uint64 ts, uint256 _cumulative0, uint256 _cumulative1) public {
+    function test_CumulativePrice(
+        uint112 _reserve0,
+        uint112 _reserve1,
+        uint112 balance0,
+        uint112 balance1,
+        bytes32 initState,
+        uint64 ts,
+        uint256 _cumulative0,
+        uint256 _cumulative1
+    ) public {
         vm.store(address(lptoken), PACKED_RESERVE_SLOT, initState);
         vm.store(address(lptoken), P0CUMULATIVE_SLOT, bytes32(_cumulative0));
         vm.store(address(lptoken), P1CUMULATIVE_SLOT, bytes32(_cumulative1));
@@ -120,15 +126,12 @@ contract UpdateTest is Test {
         assertEq(mock.price0CumulativeLast(), uint256(vm.load(address(lptoken), P0CUMULATIVE_SLOT)));
         assertEq(mock.price1CumulativeLast(), uint256(vm.load(address(lptoken), P1CUMULATIVE_SLOT)));
 
-        
         mock.updateTest(balance0, balance1, _reserve0, _reserve1);
         vm.record();
         lptoken.updateTest(balance0, balance1, _reserve0, _reserve1);
-      (bytes32[] memory reads, bytes32[] memory writes) = vm.accesses(
-  address(lptoken)
-);
+        (bytes32[] memory reads, bytes32[] memory writes) = vm.accesses(address(lptoken));
         for (uint256 i = 0; i < reads.length; i++) {
-          console.log("read: ", i);
+            console.log("read: ", i);
             console.logBytes32(reads[i]);
         }
         for (uint256 i = 0; i < writes.length; i++) {
@@ -137,10 +140,16 @@ contract UpdateTest is Test {
         }
 
         assertEq(vm.load(address(mock), bytes32(0x00)), vm.load(address(lptoken), PACKED_RESERVE_SLOT), "wrong reserve");
-        assertEq(mock.price0CumulativeLast(), uint256(vm.load(address(lptoken), P0CUMULATIVE_SLOT)), "wrong price0CumulativeLast");
-        assertEq(mock.price1CumulativeLast(), uint256(vm.load(address(lptoken), P1CUMULATIVE_SLOT)), "wrong price1CumulativeLast");
-
-
+        assertEq(
+            mock.price0CumulativeLast(),
+            uint256(vm.load(address(lptoken), P0CUMULATIVE_SLOT)),
+            "wrong price0CumulativeLast"
+        );
+        assertEq(
+            mock.price1CumulativeLast(),
+            uint256(vm.load(address(lptoken), P1CUMULATIVE_SLOT)),
+            "wrong price1CumulativeLast"
+        );
 
         /*
         uint256 price0CumulativeLast_start;

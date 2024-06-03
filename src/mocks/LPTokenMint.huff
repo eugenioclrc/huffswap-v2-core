@@ -1,0 +1,26 @@
+#include "src/SWAP/main.huff"
+#include "Huff-Console/Console.huff"
+
+#define function mint(address to) nonpayable returns()
+#define function burn(address to) nonpayable returns()
+
+
+#define macro MAIN() = takes (1) returns (1) {
+    // Identify which function is being called.
+    0x00 calldataload 0xE0 shr          // [func_sig]
+
+    dup1 __FUNC_SIG(mint)                 eq mintJump             jumpi
+    dup1 __FUNC_SIG(burn)                 eq burnJump             jumpi
+
+
+    0xffffffff 0x00 mstore
+    0x04 0x1c revert
+
+    mintJump:
+      MINT(0x00)      
+
+    burnJump:
+      stop
+
+}
+

@@ -23,7 +23,7 @@
     dup2                        // [reserve1, reserve0, klast, rootK, rootKLast, rootK, rootKLast]
     _MINT_FEE_CALCULATE(<z0>)   // [reserve1, reserve0, klast, rootK, rootKLast, liquidity]
     [FACTORY]                   // [reserve1, reserve0, klast, rootK, rootKLast, liquidity, FACTORY]
-    _MINT()                 // [reserve1, reserve0, klast, rootK, rootKLast]
+    _MINT(<z0>)                 // [reserve1, reserve0, klast, rootK, rootKLast]
     skipMintFeeCalculation:
     // stack here                  [reserve1, reserve0, klast, rootK, rootKLast]
     pop                         // [reserve1, reserve0, klast, rootK]
@@ -38,28 +38,27 @@
     pop
 }
 
-
 #define macro _MINT_CALCULATE(z0) = takes(4) returns(2) {
     // takes:                      [reserve1, reserve0, amount1, amount0]
     [TOTAL_SUPPLY_SLOT]         // [reserve1, reserve0, amount1, amount0, TOTAL_SUPPLY_SLOT]
     sload                       // [reserve1, reserve0, amount1, amount0, totalSupply]
-
-    dup1 iszero firstDepositJump jumpi
-    // stack:                      [reserve1, reserve0, amount1, amount0, totalSupply]
-    // calculate liquidity for mint knowing that totalSupply > 0
-    _CALC_LIQUIDITY_HAS_SUPPLY(<z0>)
-    // stack: [liquidityToMint]
-    endCalcLiquidity jump
-
-    firstDepositJump:
+    
+    dup1 notFirstDepositJump jumpi
+    
     // stack:                      [reserve1, reserve0, amount1, amount0, totalSupply]
     _CALC_LIQUIDITY_FIRST_DEPOSIT(<z0>)
+    // stack: [liquidityToMint]
+    endCalcLiquidity jump
+    
+    notFirstDepositJump:
+    // calculate liquidity for mint knowing that totalSupply > 0
+    // stack:                      [reserve1, reserve0, amount1, amount0, totalSupply]
+    _CALC_LIQUIDITY_HAS_SUPPLY(<z0>)
     // stack: [liquidityToMint]
     
     endCalcLiquidity:
     // returns:                    [liquidityToMint]
 }
-
 
 // balls-insert-start
 #define macro MINT(z0) = takes(0) returns(0) {
@@ -97,7 +96,7 @@
     dup1                        // [0x20, liquidityToMint, liquidityToMint]
     0x4                         // [0x20, liquidityToMint, liquidityToMint, 0x4]
     calldataload                // [0x20, liquidityToMint, liquidityToMint, to]
-    _MINT()                     // [0x20, liquidityToMint]
+    _MINT(<z0>)                 // [0x20, liquidityToMint]
     UNLOCK()                    // [0x20, liquidityToMint]
     <z0>                        // [0x20, liquidityToMint, z0]
     mstore                      // [0x20]
@@ -107,29 +106,30 @@
 }
 
 #define macro _CALC_LIQUIDITY_FIRST_DEPOSIT(z0) = takes(5) returns(1) {
-    // takes:                      [totalSupply, reserve1, reserve0, amount1, amount0]
-    SAFE_MUL(<z0>)              // [totalSupply, reserve1, reserve0, SAFE_MUL<z0>(amount0, amount1)]
-    SQRT()                      // [totalSupply, reserve1, reserve0, liquidityToMint]
-    [MINIMUM_LIQUIDITY]         // [totalSupply, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY]
-    dup2                        // [totalSupply, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY, liquidityToMint]
-    sub                         // [totalSupply, reserve1, reserve0, liquidityToMint, liquidityToMint]
-    swap4                       // [liquidityToMint, reserve1, reserve0, liquidityToMint, totalSupply]
-    pop                         // [liquidityToMint, reserve1, reserve0, liquidityToMint]
-    [MINIMUM_LIQUIDITY]         // [liquidityToMint, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY]
-    <z0>                        // [liquidityToMint, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY, z0]
-    _MINT()                     // [liquidityToMint, reserve1, reserve0, liquidityToMint]
-    [MINIMUM_LIQUIDITY]         // [liquidityToMint, reserve1, reserve0, liquidityToMint, MINIMUM_LIQUIDITY]
-    lt                          // [liquidityToMint, reserve1, reserve0, lt(MINIMUM_LIQUIDITY, liquidityToMint)]
-    _REQUIRE(<z0>, 0xbb55fd27)  // [liquidityToMint, reserve1, reserve0]
+    // takes:                      [reserve0, reserve1, amount0, amount1, totalSupply]
+    swap2                       // [reserve0, reserve1, totalSupply, amount1, amount0]
+    SAFE_MUL(<z0>)              // [reserve0, reserve1, totalSupply, SAFE_MUL<z0>(amount0, amount1)]
+    SQRT()                      // [reserve0, reserve1, totalSupply, liquidityToMint]
+    [MINIMUM_LIQUIDITY]         // [reserve0, reserve1, totalSupply, liquidityToMint, MINIMUM_LIQUIDITY]
+    dup2                        // [reserve0, reserve1, totalSupply, liquidityToMint, MINIMUM_LIQUIDITY, liquidityToMint]
+    sub                         // [reserve0, reserve1, totalSupply, liquidityToMint, liquidityToMint]
+    swap4                       // [liquidityToMint, reserve1, totalSupply, liquidityToMint, reserve0]
+    pop                         // [liquidityToMint, reserve1, totalSupply, liquidityToMint]
+    [MINIMUM_LIQUIDITY]         // [liquidityToMint, reserve1, totalSupply, liquidityToMint, MINIMUM_LIQUIDITY]
+    <z0>                        // [liquidityToMint, reserve1, totalSupply, liquidityToMint, MINIMUM_LIQUIDITY, z0]
+    _MINT(<z0>)                 // [liquidityToMint, reserve1, totalSupply, liquidityToMint]
+    [MINIMUM_LIQUIDITY]         // [liquidityToMint, reserve1, totalSupply, liquidityToMint, MINIMUM_LIQUIDITY]
+    lt                          // [liquidityToMint, reserve1, totalSupply, lt(MINIMUM_LIQUIDITY, liquidityToMint)]
+    _REQUIRE(<z0>, 0xbb55fd27)  // [liquidityToMint, reserve1, totalSupply]
     pop                         // [liquidityToMint, reserve1]
     pop                         // [liquidityToMint]
     // returns:                    [liquidityToMint]
 }
 
 #define macro _CALC_LIQUIDITY_HAS_SUPPLY(z0) = takes(5) returns(1) {
-    // takes:                      [totalSupply, reserve1, reserve0, amount1, amount0]
-    swap4                       // [amount0, reserve1, reserve0, amount1, totalSupply]
-    swap2                       // [amount0, reserve1, totalSupply, amount1, reserve0]
+    // takes:                      [reserve0, reserve1, amount0, amount1, totalSupply]
+    swap2                       // [reserve0, reserve1, totalSupply, amount1, amount0]
+    swap4                       // [amount0, reserve1, totalSupply, amount1, reserve0]
     swap3                       // [amount0, reserve0, totalSupply, amount1, reserve1]
     swap1                       // [amount0, reserve0, totalSupply, reserve1, amount1]
     dup3                        // [amount0, reserve0, totalSupply, reserve1, amount1, totalSupply]

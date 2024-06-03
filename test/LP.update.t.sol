@@ -8,16 +8,17 @@ using {compile} for Vm;
 
 interface ILPToken {
     error Overflow();
+
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    function updateTest(uint256 balance0, uint256  balance1, uint112 reserve0, uint112 reserve1) external;
+    function updateTest(uint256 balance0, uint256 balance1, uint112 reserve0, uint112 reserve1) external;
 }
 
 contract LpTest is Test {
     ILPToken lptoken;
 
     function setUp() public {
-        bytes memory bytecode = vm.compile("src/mocks/LPToken.huff");
+        bytes memory bytecode = vm.compile("src/mocks/LPTokenUpdate.huff");
         /// @solidity memory-safe-assembly
         ILPToken _token;
         assembly {
@@ -35,7 +36,5 @@ contract LpTest is Test {
         vm.expectEmit(true, true, false, false);
         emit ILPToken.Sync(1, 1);
         lptoken.updateTest(1, 1, 1, 1);
-        
     }
-    
 }

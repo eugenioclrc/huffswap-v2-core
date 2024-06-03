@@ -312,7 +312,7 @@ contract PayableTokenTest is Test {
     function testTransferFromAndCallWorkEmpty() public {
         address EOA = makeAddr("EOA");
         address spender = makeAddr("spender");
-        
+
         expectedOperator = spender;
         expectedFrom = EOA;
         expectedBytes = "";
@@ -335,7 +335,7 @@ contract PayableTokenTest is Test {
         vm.prank(EOA);
         token.approve(spender, 1 ether);
         expectedBytes = "GM!";
-        
+
         vm.prank(spender);
         token.transferFromAndCall(EOA, address(this), 1 ether, "GM!");
     }

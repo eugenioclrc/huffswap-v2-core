@@ -1,0 +1,36 @@
+#include "src/SWAP/main.huff"
+
+#define function updateTest(uint256 balance0, uint256  balance1, uint112 reserve0, uint112 reserve1) nonpayable returns()
+
+
+#define macro MAIN() = takes (1) returns (1) {
+    // Identify which function is being called.
+    0x00 calldataload 0xE0 shr          // [func_sig]
+
+
+    dup1 __FUNC_SIG("updateTest(uint256,uint256,uint112,uint112)") eq updateTestJump        jumpi
+
+
+    0xffffffff 0x00 mstore
+    0x04 0x1c revert
+
+    updateTestJump:
+      [PACKED_RESERVE_SLOT] sload
+      // takes:                      [packedReserveSlot]
+      [BLOCK_TIMESTAMP_LAST_OFFSET]
+      //                             [packedReserveSlot, BLOCK_TIMESTAMP_LAST_OFFSET]
+      shr                         // [blockTimestampLast]
+    
+
+
+      0x64 calldataload           // [blockTimestampLast, reserve0]
+      0x44 calldataload           // [blockTimestampLast, reserve0, reserve1]
+      0x24 calldataload           // [blockTimestampLast, reserve0, reserve1, balance1]
+      0x04 calldataload           // [blockTimestampLast, reserve0, reserve1, balance1, balance0]
+
+      
+      _UPDATE(0x00)
+      stop
+
+}
+

@@ -23,5 +23,6 @@ sed -i "s/\[SIG_onApprovalReceived\]/__FUNC_SIG(\"onApprovalReceived(address,uin
 
 
 # sanity check
-huffc src/mocks/LPToken.huff
+huffc src/mocks/LPTokenMint.huff
+huffc src/mocks/LPTokenUpdate.huff
 
