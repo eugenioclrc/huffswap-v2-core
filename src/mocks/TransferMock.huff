@@ -1,0 +1,26 @@
+#include "src/libraries/SafeERC20.huff"
+#include "src/libraries/Errors.huff"
+
+
+#define function safeTransfer(address,address,uint256) nonpayable returns ()
+
+#define macro MAIN() = takes (1) returns (1) {
+    // Identify which function is being called.
+    0x00 calldataload 0xE0 shr          // [func_sig]
+
+    dup1 __FUNC_SIG(safeTransfer)          eq safeTransferJump       jumpi
+    
+
+    0xffffffff 0x00 mstore
+    0x04 0x1c revert
+
+
+    safeTransferJump:
+      0x44 calldataload       // [amount]
+      0x24 calldataload       // [amount, to]
+      0x04 calldataload       // [amount, to, token]
+      ERC20_TRANSFER(0x00)
+      stop
+
+}
+
