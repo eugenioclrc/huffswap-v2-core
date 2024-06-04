@@ -1,8 +1,8 @@
 balls src/SWAP/GetReserves.balls -d --output-path src/SWAP/GetReserves.huff
 balls src/SWAP/Update.balls -d --output-path src/SWAP/Update.huff
 balls src/SWAP/Mint.balls -d --output-path src/SWAP/Mint.huff
-balls src/SWAP/Skim.balls --output-path src/SWAP/Skim.huff
-balls src/SWAP/Sync.balls --output-path src/SWAP/Sync.huff
+balls src/SWAP/Skim.balls -d --output-path src/SWAP/Skim.huff
+balls src/SWAP/Sync.balls -d --output-path src/SWAP/Sync.huff
 
 cat src/SWAP/template.huff        > src/SWAP/main.huff
 echo "\n"                        >> src/SWAP/main.huff
