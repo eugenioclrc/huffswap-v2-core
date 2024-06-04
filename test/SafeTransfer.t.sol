@@ -30,16 +30,14 @@ contract MathTest is Test {
         transferHelper = _transferHelper;
 
         mock.initialize("Token 0", "tkn0", 18);
-        
+
         deal(address(mock), address(transferHelper), 10 ether);
     }
 
     function test_transferSimple() public {
         assertEq(mock.balanceOf(address(transferHelper)), 10 ether);
-        
+
         transferHelper.safeTransfer(address(mock), address(this), 1 ether);
         assertEq(mock.balanceOf(address(transferHelper)), 9 ether);
-        
     }
-
 }
