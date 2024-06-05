@@ -10,6 +10,12 @@ A simple DEX with BALLs
 
 HuffSwap V2 Core is a decentralized trading protocol, offering a platform for trading ERC20 tokens in a permissionless and trustless manner through the use of smart contracts. It extends Foundry's capabilities by providing developers with a suite of tools for deploying and interacting with smart contracts on Ethereum, specifically tailored for creating and managing decentralized exchanges.
 
+
+## Previous work
+
+This is not a fully new idea, this is heavily on the [UniswapV2-core](https://github.com/Uniswap/v2-core/) contracts, and should be fully compatible.
+There were also some previous work rebuilding the pair contract in huff: [UniswapV2-Huff](https://github.com/AmadiMichael/UniswapV2-Huff/)
+
 ### Prerequisites
 
 This steps are optionals if you want to change the Pair code and recompile everything.
