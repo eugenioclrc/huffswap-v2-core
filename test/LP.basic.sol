@@ -108,10 +108,30 @@ contract LpTest is Test {
             assertEq(reserve0, amount0);
             assertEq(reserve1, amount1);
         }
+    }
 
-        /*
-        assertEq(MockERC20(TOKEN0).balanceOf(user), amount0);
-        assertEq(MockERC20(TOKEN1).balanceOf(user), amount1);        
-        */
+    function test_swapSimple() external {
+        uint256 amount0 = 1000 ether;
+        uint256 amount1 = 1000 ether;
+        deal(TOKEN0, address(lptoken), amount0);
+        deal(TOKEN1, address(lptoken), amount1);
+        deal(TOKEN0, address(uni), amount0);
+        deal(TOKEN1, address(uni), amount1);
+        deal(TOKEN0, address(this), 2 ether);
+        
+
+        address user = makeAddr("USER");
+        lptoken.mint(user);
+        uni.mint(user);
+
+        MockERC20(TOKEN0).transfer(address(uni), 1 ether);
+        MockERC20(TOKEN0).transfer(address(lptoken), 1 ether);
+        
+        assertEq(MockERC20(TOKEN0).balanceOf(address(uni)), amount0 + 1 ether);
+        assertEq(MockERC20(TOKEN0).balanceOf(address(lptoken)), amount0 + 1 ether);
+
+        uni.swap(0, 0.9 ether, address(this), hex"");
+        lptoken.swap(0, 0.9 ether, address(this), hex"");
+        
     }
 }

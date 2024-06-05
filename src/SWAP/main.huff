@@ -490,3 +490,213 @@
     // returns:                    []
 }
 // balls-insert-end
+
+#define macro _TRANSFER_IF_NOT_ZERO(z0) = takes(3) returns(0) {
+    // takes:                      [amount, to, TOKEN]
+    dup3 iszero skipTransferJump jumpi
+    
+    dup3                        // [amount, to, TOKEN, amount]
+    dup3                        // [amount, to, TOKEN, amount, to]
+    dup3                        // [amount, to, TOKEN, amount, to, TOKEN]
+    
+    ERC20_TRANSFER(<z0>)        // [amount, to, TOKEN]
+
+    skipTransferJump:
+    // stack:                      [amount, to, TOKEN]
+    pop                         // [amount, to]
+    pop                         // [amount]
+    pop                         // []
+    
+    // returns:                    []
+}
+
+#define macro _UNISWAP_V2_CALL_IF_DATA(z0) = takes(3) returns(0) {  
+  // takes:                      [to, amount0Out, amount1Out]
+  0x84 calldataload          // length of data
+  iszero                     // data.length == 0
+  skipHook jumpi             // if data.length == 0, jump to skipCallJump
+  dup3                       // [to, amount0Out, amount1Out, to]
+  dup3                       // [to, amount0Out, amount1Out, to, amount0Out]
+  dup3                       // [to, amount0Out, amount1Out, to, amount0Out, amount1Out]
+  _UNISWAP_V2_CALL(<z0>)       // [to, amount0Out, amount1Out]
+
+  skipHook:
+  pop
+  pop
+  pop
+}
+
+
+// balls-insert-start
+#define macro KCHECK(z0) = takes(4) returns(0) {
+    // takes:                      [reserve1, reserve0, balance1, balance0]
+    dup1                        // [reserve1, reserve0, balance1, balance0, balance0]
+    dup4                        // [reserve1, reserve0, balance1, balance0, balance0, reserve0]
+    sub                         // [reserve1, reserve0, balance1, balance0, amount0In]
+    0x3                         // [reserve1, reserve0, balance1, balance0, amount0In, 0x3]
+    0x0                         // [reserve1, reserve0, balance1, balance0, amount0In, 0x3, 0x0]
+    0x0                         // [reserve1, reserve0, balance1, balance0, amount0In, 0x3, 0x0, 0x0]
+    dup4                        // [reserve1, reserve0, balance1, balance0, amount0In, 0x3, 0x0, 0x0, amount0In]
+    gt                          // [reserve1, reserve0, balance1, balance0, amount0In, 0x3, 0x0, gt(amount0In, 0x0)]
+    [MINIMUM_LIQUIDITY]         // [reserve1, reserve0, balance1, balance0, amount0In, 0x3, 0x0, gt(amount0In, 0x0), MINIMUM_LIQUIDITY]
+    swap4                       // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, 0x3, 0x0, gt(amount0In, 0x0), amount0In]
+    TERNARY()                   // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, 0x3, amount0In]
+    mul                         // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3)]
+    0x3                         // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3]
+    dup5                        // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, balance1]
+    dup8                        // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, balance1, reserve1]
+    sub                         // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, amount1In]
+    0x0                         // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, amount1In, 0x0]
+    dup2                        // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, amount1In, 0x0, amount1In]
+    gt                          // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, amount1In, gt(amount1In, 0x0)]
+    0x0                         // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, amount1In, gt(amount1In, 0x0), 0x0]
+    swap2                       // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, 0x0, gt(amount1In, 0x0), amount1In]
+    TERNARY()                   // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), 0x3, amount1In]
+    mul                         // [reserve1, reserve0, balance1, balance0, MINIMUM_LIQUIDITY, mul(amount0In, 0x3), mul(amount1In, 0x3)]
+    swap3                       // [reserve1, reserve0, balance1, mul(amount1In, 0x3), MINIMUM_LIQUIDITY, mul(amount0In, 0x3), balance0]
+    [MINIMUM_LIQUIDITY]         // [reserve1, reserve0, balance1, mul(amount1In, 0x3), MINIMUM_LIQUIDITY, mul(amount0In, 0x3), balance0, MINIMUM_LIQUIDITY]
+    mul                         // [reserve1, reserve0, balance1, mul(amount1In, 0x3), MINIMUM_LIQUIDITY, mul(amount0In, 0x3), mul(MINIMUM_LIQUIDITY, balance0)]
+    sub                         // [reserve1, reserve0, balance1, mul(amount1In, 0x3), MINIMUM_LIQUIDITY, balance0Adjusted]
+    swap3                       // [reserve1, reserve0, balance0Adjusted, mul(amount1In, 0x3), MINIMUM_LIQUIDITY, balance1]
+    mul                         // [reserve1, reserve0, balance0Adjusted, mul(amount1In, 0x3), mul(balance1, MINIMUM_LIQUIDITY)]
+    sub                         // [reserve1, reserve0, balance0Adjusted, balance1Adjusted]
+    mul                         // [reserve1, reserve0, newK]
+    swap2                       // [newK, reserve0, reserve1]
+    mul                         // [newK, mul(reserve1, reserve0)]
+    0xf4240                     // [newK, mul(reserve1, reserve0), 0xf4240]
+    mul                         // [newK, k]
+    lt                          // [lt(k, newK)]
+    _REQUIRE(<z0>, 0x35b01a0f)  // []
+    // returns:                    []
+}
+
+#define macro SWAP(z0) = takes(0) returns(0) {
+    // takes:                      []
+    [PACKED_RESERVE_SLOT]       // [PACKED_RESERVE_SLOT]
+    LOCK(<z0>)                  // [PACKED_RESERVE_SLOT]
+    sload                       // [packedReserveSlot]
+    dup1                        // [packedReserveSlot, packedReserveSlot]
+    _GET_RESERVE1()             // [packedReserveSlot, reserve1]
+    dup2                        // [packedReserveSlot, reserve1, packedReserveSlot]
+    _GET_RESERVE0()             // [packedReserveSlot, reserve1, reserve0]
+    dup2                        // [packedReserveSlot, reserve1, reserve0, reserve1]
+    address                     // [packedReserveSlot, reserve1, reserve0, reserve1, address()]
+    [TOKEN0]                    // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0]
+    0x24                        // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0, 0x24]
+    calldataload                // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out]
+    0x4                         // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, 0x4]
+    calldataload                // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out]
+    0x44                        // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, 0x44]
+    calldataload                // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, calldataload(0x44)]
+    [ADDRESS_MASK]              // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, calldataload(0x44), ADDRESS_MASK]
+    and                         // [packedReserveSlot, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to]
+    swap8                       // [to, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, packedReserveSlot]
+    dup9                        // [to, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, packedReserveSlot, to]
+    dup4                        // [to, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, packedReserveSlot, to, amount1Out]
+    dup4                        // [to, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, packedReserveSlot, to, amount1Out, amount0Out]
+    _SWAP_CHECK_INPUTS(<z0>)    // [to, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, packedReserveSlot]
+    _GET_BLOCK_TIMESTAMP_LAST()
+    //                             [to, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, blockTimestampLast]
+    swap8                       // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to]
+    dup8                        // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to, reserve1]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to, reserve1, amount1Out]
+    lt                          // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to, lt(amount1Out, reserve1)]
+    dup8                        // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to, lt(amount1Out, reserve1), reserve0]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to, lt(amount1Out, reserve1), reserve0, amount0Out]
+    lt                          // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to, lt(amount1Out, reserve1), lt(amount0Out, reserve0)]
+    or                          // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to, or(lt(amount0Out, reserve0), lt(amount1Out, reserve1))]
+    _REQUIRE(<z0>, 0xbb55fd27)  // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0, amount1Out, amount0Out, to]
+    _TRANSFER_SWAP_HOOK(<z0>)   // [blockTimestampLast, reserve1, reserve0, reserve1, address(), TOKEN0]
+    ERC20_BALANCE_OF(<z0>)      // [blockTimestampLast, reserve1, reserve0, reserve1, balance0]
+    address                     // [blockTimestampLast, reserve1, reserve0, reserve1, balance0, address()]
+    [TOKEN1]                    // [blockTimestampLast, reserve1, reserve0, reserve1, balance0, address(), TOKEN1]
+    ERC20_BALANCE_OF(<z0>)      // [blockTimestampLast, reserve1, reserve0, reserve1, balance0, balance1]
+    swap2                       // [blockTimestampLast, reserve1, reserve0, balance1, balance0, reserve1]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, balance1, balance0, reserve1, reserve0]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, balance1, balance0, reserve1, reserve0, balance1]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, balance1, balance0, reserve1, reserve0, balance1, balance0]
+    KCHECK(<z0>)                // [blockTimestampLast, reserve1, reserve0, balance1, balance0]
+    _UPDATE(<z0>)               // []
+    0x20                        // [0x20]
+    UNLOCK()                    // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro _STORE_IN_MEMORY_FOR_UNICALL(z0) = takes(2) returns(0) {
+    // takes:                      [amount1Out, amount0Out]
+    __FUNC_SIG("uniswapV2Call(address,uint256,uint256,bytes)")         // [amount1Out, amount0Out, SIG_uniswapV2Call]
+    0xe0                        // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0]
+    0x84                        // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0, 0x84]
+    calldatasize                // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0, 0x84, calldatasize()]
+    sub                         // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0, sub(calldatasize(), 0x84)]
+    0x84                        // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0, sub(calldatasize(), 0x84), 0x84]
+    0x84                        // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0, sub(calldatasize(), 0x84), 0x84, 0x84]
+    calldatacopy                // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0]
+    caller                      // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0, caller()]
+    0x4                         // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0, caller(), 0x4]
+    mstore                      // [amount1Out, amount0Out, SIG_uniswapV2Call, 0xe0]
+    shl                         // [amount1Out, amount0Out, shiftedFunctionSig]
+    pop                         // [amount1Out, amount0Out]
+    0x24                        // [amount1Out, amount0Out, 0x24]
+    mstore                      // [amount1Out]
+    0x44                        // [amount1Out, 0x44]
+    mstore                      // []
+    0x80                        // [0x80]
+    0x64                        // [0x80, 0x64]
+    mstore                      // []
+    // returns:                    []
+}
+
+#define macro _SWAP_CHECK_INPUTS(z0) = takes(3) returns(0) {
+    // takes:                      [to, amount1Out, amount0Out]
+    or                          // [to, or(amount0Out, amount1Out)]
+    _REQUIRE(<z0>, 0x42301c23)  // [to]
+    dup1                        // [to, to]
+    [TOKEN0]                    // [to, to, TOKEN0]
+    eq                          // [to, eq(TOKEN0, to)]
+    iszero                      // [to, iszero(eq(TOKEN0, to))]
+    _REQUIRE(<z0>, 0x290fa188)  // [to]
+    [TOKEN1]                    // [to, TOKEN1]
+    eq                          // [eq(TOKEN1, to)]
+    iszero                      // [iszero(eq(TOKEN1, to))]
+    _REQUIRE(<z0>, 0x290fa188)  // []
+    // returns:                    []
+}
+
+#define macro _TRANSFER_SWAP_HOOK(z0) = takes(3) returns(0) {
+    // takes:                      [amount1Out, amount0Out, to]
+    dup3                        // [amount1Out, amount0Out, to, amount1Out]
+    dup3                        // [amount1Out, amount0Out, to, amount1Out, amount0Out]
+    dup3                        // [amount1Out, amount0Out, to, amount1Out, amount0Out, to]
+    [TOKEN0]                    // [amount1Out, amount0Out, to, amount1Out, amount0Out, to, TOKEN0]
+    _TRANSFER_IF_NOT_ZERO(<z0>)
+    //                             [amount1Out, amount0Out, to, amount1Out]
+    dup2                        // [amount1Out, amount0Out, to, amount1Out, to]
+    [TOKEN1]                    // [amount1Out, amount0Out, to, amount1Out, to, TOKEN1]
+    _TRANSFER_IF_NOT_ZERO(<z0>)
+    //                             [amount1Out, amount0Out, to]
+    _UNISWAP_V2_CALL_IF_DATA(<z0>)
+    //                             []
+    // returns:                    []
+}
+
+#define macro _UNISWAP_V2_CALL(z0) = takes(3) returns(0) {
+    // takes:                      [amount1Out, amount0Out, to]
+    swap2                       // [to, amount0Out, amount1Out]
+    <z0>                        // [to, amount0Out, amount1Out, z0]
+    swap2                       // [to, z0, amount1Out, amount0Out]
+    _STORE_IN_MEMORY_FOR_UNICALL(<z0>)
+    //                             [to, z0]
+    calldatasize                // [to, z0, calldatasize()]
+    <z0>                        // [to, z0, calldatasize(), z0]
+    <z0>                        // [to, z0, calldatasize(), z0, z0]
+    <z0>                        // [to, z0, calldatasize(), z0, z0, z0]
+    swap5                       // [z0, z0, calldatasize(), z0, z0, to]
+    gas                         // [z0, z0, calldatasize(), z0, z0, to, gas()]
+    call                        // [callOk]
+    _REQUIRE(<z0>, 0x7fd1918d)  // []
+    // returns:                    []
+}
+// balls-insert-end

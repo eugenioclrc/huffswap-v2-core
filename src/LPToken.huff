@@ -184,9 +184,8 @@
       0x04 0x1c revert
     
     swapJump:
-      // @todo SWAP(<z0>)
-      0x01 0x00 revert
-
+      SWAP(<z0>)
+      
     // function supportsInterface(bytes4) view returns (bool) 
     supportsInterfaceJump:
       // @todo SUPPORTS_INTERFACE()
