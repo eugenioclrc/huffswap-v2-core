@@ -27,6 +27,7 @@ sed -i "s/\[_TRANSFER_EVENT_SIGNATURE\]/__EVENT_HASH(Transfer)/g" src/SWAP/main.
 # Pair events
 sed -i "s/\[_SYNC_EVENT_SIGNATURE\]/__EVENT_HASH(Sync)/g" src/SWAP/main.huff
 sed -i "s/\[_MINT_EVENT_SIGNATURE\]/__EVENT_HASH(Mint)/g" src/SWAP/main.huff
+sed -i "s/\[_SWAP_EVENT_SIGNATURE\]/__EVENT_HASH(Swap)/g" src/SWAP/main.huff
 
 sed -i "s/\[SIG_onTransferReceived\]/__FUNC_SIG(\"onTransferReceived(address,address,uint256,bytes)\")/g" src/SWAP/main.huff
 sed -i "s/\[SIG_onApprovalReceived\]/__FUNC_SIG(\"onApprovalReceived(address,uint256,bytes)\")/g" src/SWAP/main.huff

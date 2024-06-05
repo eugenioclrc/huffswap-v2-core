@@ -12,6 +12,7 @@ extern _UNISWAP_V2_CALL_IF_DATA(z0) stack(3, 0) reads(CONTROL_FLOW) writes(MEMOR
 extern TERNARY() stack(3, 1) writes(CONTROL_FLOW)
 
 const _MINT_EVENT_SIGNATURE
+const _SWAP_EVENT_SIGNATURE
 
 const KLAST_SLOT
 const TOTAL_SUPPLY_SLOT
@@ -60,12 +61,20 @@ fn SWAP<z0>() -> () {
   stop()
 }
 
-fn KCHECK<z0>(balance0, balance1, reserve0, reserve1) -> () writes(MEMORY) {
+fn _CALC_AMOUNT0in(reserve0, balance0) -> (amount0In) {
   amount0In = sub(reserve0, balance0)
   amount0In = TERNARY(amount0In, gt(amount0In, 0), 0)
-  amount1In = sub(reserve1, balance1)
-  amount1In = TERNARY(amount1In, gt(amount1In, 0), 0) 
+}
 
+fn _CALC_AMOUNT1in(reserve1, balance1) -> (amount1In) {
+  amount1In = sub(reserve1, balance1)
+  amount1In = TERNARY(amount1In, gt(amount1In, 0), 0)
+}
+
+fn KCHECK<z0>(balance0, balance1, reserve0, reserve1) -> () reads(CONTROL_FLOW) writes(STORAGE) {
+  amount0In = _CALC_AMOUNT0in(reserve0, balance0)
+  amount1In = _CALC_AMOUNT1in(reserve1, balance1)
+  
   balance0Adjusted = sub(mul(balance0, MINIMUM_LIQUIDITY), mul(amount0In, 3))
   balance1Adjusted = sub(mul(balance1, MINIMUM_LIQUIDITY), mul(amount1In, 3))
 
@@ -75,9 +84,19 @@ fn KCHECK<z0>(balance0, balance1, reserve0, reserve1) -> () writes(MEMORY) {
   // WrongK() = 0x35b01a0f
   _REQUIRE<z0, 0x35b01a0f>(gt(newK, k))
 
-  // @todo emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
-
+  _EMIT_SWAP_EVENT<z0>(amount0In, amount1In)
 }
+
+
+fn _EMIT_SWAP_EVENT<z0>(amount0In, amount1In) -> () writes(MEMORY, CONTROL_FLOW) {
+  mstore(z0, caller())
+  mstore(z0, amount0In)
+  mstore(0x20, amount1In)
+  mstore(0x40, calldataload(0x04)) // amount0Out
+  mstore(0x60, calldataload(0x24)) // amount1Out
+  log3(z0, 0x80, _SWAP_EVENT_SIGNATURE, caller(), calldataload(0x44))
+}
+
 
 fn _TRANSFER_SWAP_HOOK<z0>(to, amount0Out, amount1Out) -> () writes(MEMORY, CONTROL_FLOW) {
   _TRANSFER_IF_NOT_ZERO<z0>(TOKEN0, to, amount0Out)
