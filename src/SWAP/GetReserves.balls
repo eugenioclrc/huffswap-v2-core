@@ -1,9 +1,13 @@
-const PACKED_RESERVE_INFO
+const PACKED_RESERVE_SLOT
 const RESERVE1_OFFSET
 const BLOCK_TIMESTAMP_LAST_OFFSET
 
 const TOKEN0
 const TOKEN1
+
+const P0CUMULATIVE_SLOT
+const P1CUMULATIVE_SLOT
+const KLAST_SLOT
 
 fn _GET_RESERVE0(packedReserveSlot) -> (reserve0) {
   reserve0 = and(packedReserveSlot, 0xffffffffffffffffffffffffffff)
@@ -18,7 +22,7 @@ fn _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot) -> (blockTimestampLast) {
 }
 
 fn GET_RESERVES<z0>() -> (reserve0, reserve1, blockTimestampLast) {
-  packedReserveSlot = sload(PACKED_RESERVE_INFO)
+  packedReserveSlot = sload(PACKED_RESERVE_SLOT)
   reserve0 = _GET_RESERVE0(packedReserveSlot)
   reserve1 = _GET_RESERVE1(packedReserveSlot)
   blockTimestampLast = _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot)
@@ -28,4 +32,28 @@ fn GET_RESERVES<z0>() -> (reserve0, reserve1, blockTimestampLast) {
   mstore(0x40, blockTimestampLast)
 
   return(z0, 0x60)
+}
+
+fn PRICE0_CUMULATIVE_LAST<z0>() -> () {
+  price0CumulativeLast = sload(P0CUMULATIVE_SLOT)
+
+  mstore(z0, price0CumulativeLast)
+
+  return(z0, 0x20)
+}
+
+fn PRICE1_CUMULATIVE_LAST<z0>() -> () {
+  price1CumulativeLast = sload(P1CUMULATIVE_SLOT)
+
+  mstore(z0, price1CumulativeLast)
+
+  return(z0, 0x20)
+}
+
+fn K_LAST<z0>() -> () {
+  kLast = sload(KLAST_SLOT)
+
+  mstore(z0, kLast)
+
+  return(z0, 0x20)
 }

@@ -4,6 +4,9 @@
 /// @notice Some ideas were taken from Solmate, Solady and Huffmate
 
 // ERC1363, imports ERC20, SafeMath and Storage
-#include "../ERC1363/main.huff"
+#include "src/ERC1363/main.huff"
+#include "src/libraries/ReentrancyGuard.huff"
+#include "src/libraries/SafeERC20.huff"
 
 #define event Sync(uint112 reserve0, uint112 reserve1)
+#define event Mint(address indexed sender, uint amount0, uint amount1)

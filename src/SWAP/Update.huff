@@ -1,3 +1,22 @@
+// extern (z0) stack(3, 0) reads(CONTROL_FLOW)
+#define macro _UPDATE_CUMULATIVE_IFNEED(z0) = takes(3) returns(0) {
+    // takes:                      [reserve1, reserve0, timeElapsed]
+    dup3                    // [reserve1, reserve0, timeElapsed, reserve1]  
+    dup3                    // [reserve1, reserve0, timeElapsed, reserve1, reserve0]
+    dup3                    // [reserve1, reserve0, timeElapsed, reserve1, reserve0, timeElapsed]
+    or                      // [reserve1, reserve0, timeElapsed, reserve1, reserve0 | timeElapsed]
+    or                      // [reserve1, reserve0, timeElapsed, reserve1 | reserve0 | timeElapsed]
+    iszero                  // [reserve1, reserve0, timeElapsed, (reserve1 | reserve0 | timeElapsed) == 0]
+    skipCumulativeUpdate jumpi
+    // takes:                      [reserve1, reserve0, timeElapsed]
+    _UPDATE_CUMULATIVE(<z0>)
+    // returns:                    [amount, allowanceAmount, allowanceSlot]
+    skipCumulativeUpdate:
+    pop pop pop
+    // returns:                    []    
+}
+
+
 // balls-insert-start
 #define macro ENCODE_UQ112() = takes(1) returns(1) {
     // takes:                      [r]
@@ -8,14 +27,6 @@
     //                             [mul(0x10000000000000000000000000000, r), maskUint224]
     and                         // [encoded]
     // returns:                    [encoded]
-}
-
-#define macro TEST_UQ() = takes(3) returns(1) {
-    // takes:                      [z, y, x]
-    ENCODE_UQ112()              // [z, y, ENCODE_UQ112<>(x)]
-    UQ_DIV()                    // [z, UQ_DIV<>(ENCODE_UQ112<>(x), y)]
-    mul                         // [result]
-    // returns:                    [result]
 }
 
 #define macro UQ_DIV() = takes(2) returns(1) {
@@ -42,30 +53,33 @@
 
 #define macro _UPDATE(z0) = takes(5) returns(0) {
     // takes:                      [blockTimestampLast, reserve1, reserve0, balance1, balance0]
-    dup2                        // [blockTimestampLast, reserve1, reserve0, balance1, balance0, balance1]
-    dup2                        // [blockTimestampLast, reserve1, reserve0, balance1, balance0, balance1, balance0]
-    _UPDATE_PACKED_RESERVE(<z0>)
-    //                             [blockTimestampLast, reserve1, reserve0, balance1, balance0]
-    dup2                        // [blockTimestampLast, reserve1, reserve0, balance1, balance0, balance1]
-    dup2                        // [blockTimestampLast, reserve1, reserve0, balance1, balance0, balance1, balance0]
-    _EMIT_SYNC(<z0>)            // [blockTimestampLast, reserve1, reserve0, balance1, balance0]
+    swap3                       // [blockTimestampLast, balance0, reserve0, balance1, reserve1]
+    swap2                       // [blockTimestampLast, balance0, reserve1, balance1, reserve0]
+    swap1                       // [blockTimestampLast, balance0, reserve1, reserve0, balance1]
+    swap4                       // [balance1, balance0, reserve1, reserve0, blockTimestampLast]
     0xffffffffffffffffffffffffffff
-    //                             [blockTimestampLast, reserve1, reserve0, balance1, balance0, 0xffffffffffffffffffffffffffff]
-    lt                          // [blockTimestampLast, reserve1, reserve0, balance1, lt(0xffffffffffffffffffffffffffff, balance0)]
-    iszero                      // [blockTimestampLast, reserve1, reserve0, balance1, notOverflowBalance0]
-    _REQUIRE(<z0>, 0x35278d12)  // [blockTimestampLast, reserve1, reserve0, balance1]
+    //                             [balance1, balance0, reserve1, reserve0, blockTimestampLast, 0xffffffffffffffffffffffffffff]
+    dup6                        // [balance1, balance0, reserve1, reserve0, blockTimestampLast, 0xffffffffffffffffffffffffffff, balance1]
+    gt                          // [balance1, balance0, reserve1, reserve0, blockTimestampLast, gt(balance1, 0xffffffffffffffffffffffffffff)]
     0xffffffffffffffffffffffffffff
-    //                             [blockTimestampLast, reserve1, reserve0, balance1, 0xffffffffffffffffffffffffffff]
-    lt                          // [blockTimestampLast, reserve1, reserve0, lt(0xffffffffffffffffffffffffffff, balance1)]
-    swap3                       // [lt(0xffffffffffffffffffffffffffff, balance1), reserve1, reserve0, blockTimestampLast]
-    timestamp                   // [lt(0xffffffffffffffffffffffffffff, balance1), reserve1, reserve0, blockTimestampLast, timestamp()]
-    sub                         // [lt(0xffffffffffffffffffffffffffff, balance1), reserve1, reserve0, sub(timestamp(), blockTimestampLast)]
-    0xffffffff                  // [lt(0xffffffffffffffffffffffffffff, balance1), reserve1, reserve0, sub(timestamp(), blockTimestampLast), 0xffffffff]
-    and                         // [lt(0xffffffffffffffffffffffffffff, balance1), reserve1, reserve0, timeElapsed]
+    //                             [balance1, balance0, reserve1, reserve0, blockTimestampLast, gt(balance1, 0xffffffffffffffffffffffffffff), 0xffffffffffffffffffffffffffff]
+    dup6                        // [balance1, balance0, reserve1, reserve0, blockTimestampLast, gt(balance1, 0xffffffffffffffffffffffffffff), 0xffffffffffffffffffffffffffff, balance0]
+    gt                          // [balance1, balance0, reserve1, reserve0, blockTimestampLast, gt(balance1, 0xffffffffffffffffffffffffffff), gt(balance0, 0xffffffffffffffffffffffffffff)]
+    iszero                      // [balance1, balance0, reserve1, reserve0, blockTimestampLast, gt(balance1, 0xffffffffffffffffffffffffffff), notOverflowBalance0]
+    _REQUIRE(<z0>, 0x35278d12)  // [balance1, balance0, reserve1, reserve0, blockTimestampLast, gt(balance1, 0xffffffffffffffffffffffffffff)]
+    iszero                      // [balance1, balance0, reserve1, reserve0, blockTimestampLast, notOverflowBalance1]
+    _REQUIRE(<z0>, 0x35278d12)  // [balance1, balance0, reserve1, reserve0, blockTimestampLast]
+    timestamp                   // [balance1, balance0, reserve1, reserve0, blockTimestampLast, timestamp()]
+    sub                         // [balance1, balance0, reserve1, reserve0, sub(timestamp(), blockTimestampLast)]
+    0xffffffff                  // [balance1, balance0, reserve1, reserve0, sub(timestamp(), blockTimestampLast), 0xffffffff]
+    and                         // [balance1, balance0, reserve1, reserve0, timeElapsed]
     _UPDATE_CUMULATIVE_IFNEED(<z0>)
-    //                             [lt(0xffffffffffffffffffffffffffff, balance1)]
-    iszero                      // [notOverflowBalance1]
-    _REQUIRE(<z0>, 0x35278d12)  // []
+    //                             [balance1, balance0]
+    dup2                        // [balance1, balance0, balance1]
+    dup2                        // [balance1, balance0, balance1, balance0]
+    _UPDATE_PACKED_RESERVE(<z0>)
+    //                             [balance1, balance0]
+    _EMIT_SYNC(<z0>)            // []
     // returns:                    []
 }
 
@@ -112,20 +126,3 @@
     // returns:                    []
 }
 // balls-insert-end
-// extern (z0) stack(3, 0) reads(CONTROL_FLOW)
-#define macro _UPDATE_CUMULATIVE_IFNEED(z0) = takes(3) returns(0) {
-    // takes:                      [reserve1, reserve0, timeElapsed]
-    dup3                    // [reserve1, reserve0, timeElapsed, reserve1]  
-    dup3                    // [reserve1, reserve0, timeElapsed, reserve1, reserve0]
-    dup3                    // [reserve1, reserve0, timeElapsed, reserve1, reserve0, timeElapsed]
-    or                      // [reserve1, reserve0, timeElapsed, reserve1, reserve0 | timeElapsed]
-    or                      // [reserve1, reserve0, timeElapsed, reserve1 | reserve0 | timeElapsed]
-    iszero                  // [reserve1, reserve0, timeElapsed, (reserve1 | reserve0 | timeElapsed) == 0]
-    skipCumulativeUpdate jumpi
-    // takes:                      [reserve1, reserve0, timeElapsed]
-    _UPDATE_CUMULATIVE(<z0>)
-    // returns:                    [amount, allowanceAmount, allowanceSlot]
-    skipCumulativeUpdate:
-    pop pop pop
-    // returns:                    []    
-}

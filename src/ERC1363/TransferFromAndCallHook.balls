@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) reads(CONTROL_FLOW)
+extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 
 const SIG_onTransferReceived
 
@@ -12,6 +12,10 @@ fn _TRANSFER_FROM_HOOK<z0>(from, to) -> () {
     //mstore(0x44, amount)
     mstore(0x64, 0x80)
 
+    _DO_TRANSFER_FROM_CALL<z0>(to, shiftedFunctionSig)
+}
+// split function so BALLs can process it
+fn _DO_TRANSFER_FROM_CALL<z0>(to, shiftedFunctionSig) -> () reads(MEMORY, CONTROL_FLOW) {
     // calldatasize + 0x60 is an overestimation of the calldata size, for empty bytes edgecase
     size = add(calldatasize(), 0x60)
     callOk = call(gas(), to, z0, z0, size, z0, 0x20)
@@ -24,4 +28,3 @@ fn _TRANSFER_FROM_HOOK<z0>(from, to) -> () {
     // __FUNC_SIG("onTransferReceived(address,address,uint256,bytes)") 0xe0 shl
     _REQUIRE<z0, 0x85b16394>(eq(ret, shiftedFunctionSig))
 }
-

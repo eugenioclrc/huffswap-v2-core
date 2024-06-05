@@ -1,5 +1,3 @@
-// balls-insert-start
-
 #define macro _SKIP_IF_INFINITY_ALLOWANCE(z0) = takes(3) returns(3) {
     dup2 <z0> not eq skipInfityAllowanceJump jumpi
     // takes:                      [amount, allowanceAmount, allowanceSlot]
@@ -15,3 +13,60 @@
     pop pop pop
     // returns:                    []    
 }
+
+// balls-insert-start
+#define macro ALLOWANCE(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    0x24                        // [0x20, 0x24]
+    calldataload                // [0x20, spender]
+    0x4                         // [0x20, spender, 0x4]
+    calldataload                // [0x20, spender, owner]
+    GET_SLOT_FROM_KEYS(<z0>)    // [0x20, allowanceSlot]
+    sload                       // [0x20, allowanceAmount]
+    <z0>                        // [0x20, allowanceAmount, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro APPROVE(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    0x1                         // [0x20, 0x1]
+    <z0>                        // [0x20, 0x1, z0]
+    0x4                         // [0x20, 0x1, z0, 0x4]
+    calldataload                // [0x20, 0x1, z0, spender]
+    0x24                        // [0x20, 0x1, z0, spender, 0x24]
+    calldataload                // [0x20, 0x1, z0, spender, amount]
+    <z0>                        // [0x20, 0x1, z0, spender, amount, z0]
+    dup2                        // [0x20, 0x1, z0, spender, amount, z0, amount]
+    dup4                        // [0x20, 0x1, z0, spender, amount, z0, amount, spender]
+    caller                      // [0x20, 0x1, z0, spender, amount, z0, amount, spender, caller()]
+    GET_SLOT_FROM_KEYS(<z0>)    // [0x20, 0x1, z0, spender, amount, z0, amount, allowanceSlot]
+    sstore                      // [0x20, 0x1, z0, spender, amount, z0]
+    mstore                      // [0x20, 0x1, z0, spender]
+    caller                      // [0x20, 0x1, z0, spender, caller()]
+    [_APPROVAL_EVENT_SIGNATURE]
+    //                             [0x20, 0x1, z0, spender, caller(), _APPROVAL_EVENT_SIGNATURE]
+    0x20                        // [0x20, 0x1, z0, spender, caller(), _APPROVAL_EVENT_SIGNATURE, 0x20]
+    <z0>                        // [0x20, 0x1, z0, spender, caller(), _APPROVAL_EVENT_SIGNATURE, 0x20, z0]
+    log3                        // [0x20, 0x1, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro _USE_ALLOWANCE(z0) = takes(3) returns(0) {
+    // takes:                      [amount, spender, owner]
+    GET_SLOT_FROM_KEYS(<z0>)    // [amount, allowanceSlot]
+    dup1                        // [amount, allowanceSlot, allowanceSlot]
+    sload                       // [amount, allowanceSlot, allowanceAmount]
+    swap1                       // [amount, allowanceAmount, allowanceSlot]
+    _SKIP_IF_INFINITY_ALLOWANCE(<z0>)
+    //                             []
+    // returns:                    []
+}
+// balls-insert-end

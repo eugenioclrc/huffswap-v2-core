@@ -1,0 +1,89 @@
+// balls-insert-start
+#define macro GET_RESERVES(z0) = takes(0) returns(3) {
+    // takes:                      []
+    [PACKED_RESERVE_SLOT]       // [PACKED_RESERVE_SLOT]
+    sload                       // [packedReserveSlot]
+    dup1                        // [packedReserveSlot, packedReserveSlot]
+    _GET_RESERVE1()             // [packedReserveSlot, reserve1]
+    dup2                        // [packedReserveSlot, reserve1, packedReserveSlot]
+    _GET_BLOCK_TIMESTAMP_LAST()
+    //                             [packedReserveSlot, reserve1, blockTimestampLast]
+    swap2                       // [blockTimestampLast, reserve1, packedReserveSlot]
+    _GET_RESERVE0()             // [blockTimestampLast, reserve1, reserve0]
+    0x60                        // [blockTimestampLast, reserve1, reserve0, 0x60]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast]
+    dup3                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, reserve0]
+    <z0>                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, reserve0, z0]
+    mstore                      // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast]
+    dup4                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, reserve1]
+    0x20                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, reserve1, 0x20]
+    mstore                      // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast]
+    0x40                        // [blockTimestampLast, reserve1, reserve0, 0x60, blockTimestampLast, 0x40]
+    mstore                      // [blockTimestampLast, reserve1, reserve0, 0x60]
+    <z0>                        // [blockTimestampLast, reserve1, reserve0, 0x60, z0]
+    return                      // [blockTimestampLast, reserve1, reserve0]
+    // returns:                    [blockTimestampLast, reserve1, reserve0]
+}
+
+#define macro K_LAST(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    [KLAST_SLOT]                // [0x20, KLAST_SLOT]
+    sload                       // [0x20, kLast]
+    <z0>                        // [0x20, kLast, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro PRICE0_CUMULATIVE_LAST(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    [P0CUMULATIVE_SLOT]         // [0x20, P0CUMULATIVE_SLOT]
+    sload                       // [0x20, price0CumulativeLast]
+    <z0>                        // [0x20, price0CumulativeLast, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro PRICE1_CUMULATIVE_LAST(z0) = takes(0) returns(0) {
+    // takes:                      []
+    0x20                        // [0x20]
+    [P1CUMULATIVE_SLOT]         // [0x20, P1CUMULATIVE_SLOT]
+    sload                       // [0x20, price1CumulativeLast]
+    <z0>                        // [0x20, price1CumulativeLast, z0]
+    mstore                      // [0x20]
+    <z0>                        // [0x20, z0]
+    return                      // []
+    // returns:                    []
+}
+
+#define macro _GET_BLOCK_TIMESTAMP_LAST() = takes(1) returns(1) {
+    // takes:                      [packedReserveSlot]
+    [BLOCK_TIMESTAMP_LAST_OFFSET]
+    //                             [packedReserveSlot, BLOCK_TIMESTAMP_LAST_OFFSET]
+    shr                         // [blockTimestampLast]
+    // returns:                    [blockTimestampLast]
+}
+
+#define macro _GET_RESERVE0() = takes(1) returns(1) {
+    // takes:                      [packedReserveSlot]
+    0xffffffffffffffffffffffffffff
+    //                             [packedReserveSlot, 0xffffffffffffffffffffffffffff]
+    and                         // [reserve0]
+    // returns:                    [reserve0]
+}
+
+#define macro _GET_RESERVE1() = takes(1) returns(1) {
+    // takes:                      [packedReserveSlot]
+    [RESERVE1_OFFSET]           // [packedReserveSlot, RESERVE1_OFFSET]
+    shr                         // [shr(RESERVE1_OFFSET, packedReserveSlot)]
+    0xffffffffffffffffffffffffffff
+    //                             [shr(RESERVE1_OFFSET, packedReserveSlot), 0xffffffffffffffffffffffffffff]
+    and                         // [reserve1]
+    // returns:                    [reserve1]
+}
+// balls-insert-end

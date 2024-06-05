@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, ERR) stack(1, 0) reads(CONTROL_FLOW)
+extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 
 fn SAFE_ADD<z0>(num1, num2) -> (result) {
     // bytes4(keccak256("Overflow()")) == 0x35278d12

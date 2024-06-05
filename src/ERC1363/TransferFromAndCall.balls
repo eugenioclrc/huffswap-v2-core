@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) reads(CONTROL_FLOW)
+extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern SAFE_SUB_ERR(z0, err) stack(2, 1)
 extern _USE_ALLOWANCE(z0) stack(3, 0) writes(CONTROL_FLOW)
 extern _TRANSFER_FROM(z0, memptr) stack(/*from, to, amount*/ 3, 0) writes(CONTROL_FLOW, MEMORY)

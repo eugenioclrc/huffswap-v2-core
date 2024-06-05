@@ -3,7 +3,7 @@
 /// @author 0x4non
 /// @notice Some ideas were taken from Solmate, Solady and Huffmate
 
-#include "../ERC20/main.huff"
+#include "src/ERC20/main.huff"
 
 // Interface
 
@@ -20,6 +20,9 @@
 
 #define constant ADDRESS_MASK = 0xffffffffffffffffffffffffffffffffffffffff
 
+
+
+// balls-insert-start
 #define macro TRANSFER_AND_CALL(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -74,25 +77,25 @@
     0xe0                        // [to, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, SIG_onTransferReceived, 0xe0]
     shl                         // [to, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, shiftedFunctionSig]
     swap7                       // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to]
-    0x80                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80]
-    caller                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller()]
-    0x24                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24]
-    caller                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller()]
-    0x4                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4]
-    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4, 0x44]
-    calldatasize                // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4, 0x44, calldatasize()]
-    sub                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4, sub(calldatasize(), 0x44)]
-    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4, sub(calldatasize(), 0x44), 0x44]
-    0x64                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4, sub(calldatasize(), 0x44), 0x44, 0x64]
-    calldatacopy                // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4]
-    dup13                       // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4, shiftedFunctionSig]
-    <z0>                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4, shiftedFunctionSig, z0]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24, caller(), 0x4]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, caller(), 0x24]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80]
-    0x64                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, 0x80, 0x64]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to]
     gas                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas()]
+    0x80                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80]
+    0x64                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64]
+    caller                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller()]
+    0x4                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4]
+    dup13                       // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4, shiftedFunctionSig]
+    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4, shiftedFunctionSig, 0x44]
+    calldatasize                // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4, shiftedFunctionSig, 0x44, calldatasize()]
+    sub                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4, shiftedFunctionSig, sub(calldatasize(), 0x44)]
+    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4, shiftedFunctionSig, sub(calldatasize(), 0x44), 0x44]
+    0x64                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4, shiftedFunctionSig, sub(calldatasize(), 0x44), 0x44, 0x64]
+    calldatacopy                // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4, shiftedFunctionSig]
+    <z0>                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4, shiftedFunctionSig, z0]
+    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x4]
+    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64]
+    caller                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller()]
+    0x24                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64, caller(), 0x24]
+    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas(), 0x80, 0x64]
+    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x60), z0, z0, to, gas()]
     call                        // [shiftedFunctionSig, z0, callOk]
     _REQUIRE(<z0>, 0x85b16394)  // [shiftedFunctionSig, z0]
     mload                       // [shiftedFunctionSig, ret]
@@ -100,6 +103,9 @@
     _REQUIRE(<z0>, 0x85b16394)  // []
     // returns:                    []
 }
+// balls-insert-end
+
+// balls-insert-start
 #define macro TRANSFER_FROM_AND_CALL(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -131,39 +137,21 @@
     return                      // []
     // returns:                    []
 }
-#define macro _TRANSFER_FROM_HOOK(z0) = takes(2) returns(0) {
-    // takes:                      [to, from]
-    0x20                        // [to, from, 0x20]
-    <z0>                        // [to, from, 0x20, z0]
-    0x60                        // [to, from, 0x20, z0, 0x60]
-    calldatasize                // [to, from, 0x20, z0, 0x60, calldatasize()]
-    add                         // [to, from, 0x20, z0, size]
-    <z0>                        // [to, from, 0x20, z0, size, z0]
-    <z0>                        // [to, from, 0x20, z0, size, z0, z0]
-    __FUNC_SIG("onTransferReceived(address,address,uint256,bytes)")    // [to, from, 0x20, z0, size, z0, z0, SIG_onTransferReceived]
-    0xe0                        // [to, from, 0x20, z0, size, z0, z0, SIG_onTransferReceived, 0xe0]
-    shl                         // [to, from, 0x20, z0, size, z0, z0, shiftedFunctionSig]
-    swap7                       // [shiftedFunctionSig, from, 0x20, z0, size, z0, z0, to]
-    gas                         // [shiftedFunctionSig, from, 0x20, z0, size, z0, z0, to, gas()]
-    0x80                        // [shiftedFunctionSig, from, 0x20, z0, size, z0, z0, to, gas(), 0x80]
-    0x64                        // [shiftedFunctionSig, from, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64]
-    <z0>                        // [shiftedFunctionSig, from, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, z0]
-    swap10                      // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from]
-    0x24                        // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24]
-    caller                      // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller()]
-    0x4                         // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4]
-    dup15                       // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4, shiftedFunctionSig]
-    <z0>                        // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4, shiftedFunctionSig, z0]
-    0x64                        // [..., z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4, shiftedFunctionSig, z0, 0x64]
-    calldatasize                // [..., 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4, shiftedFunctionSig, z0, 0x64, calldatasize()]
-    sub                         // [..., z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4, shiftedFunctionSig, z0, sub(calldatasize(), 0x64)]
-    0x64                        // [..., 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4, shiftedFunctionSig, z0, sub(calldatasize(), 0x64), 0x64]
-    0x64                        // [..., z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4, shiftedFunctionSig, z0, sub(calldatasize(), 0x64), 0x64, 0x64]
-    calldatacopy                // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4, shiftedFunctionSig, z0]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24, caller(), 0x4]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64, from, 0x24]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas(), 0x80, 0x64]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas()]
+// balls-insert-end
+
+// balls-insert-start
+#define macro _DO_TRANSFER_FROM_CALL(z0) = takes(2) returns(0) {
+    // takes:                      [shiftedFunctionSig, to]
+    0x20                        // [shiftedFunctionSig, to, 0x20]
+    <z0>                        // [shiftedFunctionSig, to, 0x20, z0]
+    calldatasize                // [shiftedFunctionSig, to, 0x20, z0, calldatasize()]
+    0x60                        // [shiftedFunctionSig, to, 0x20, z0, calldatasize(), 0x60]
+    add                         // [shiftedFunctionSig, to, 0x20, z0, size]
+    <z0>                        // [shiftedFunctionSig, to, 0x20, z0, size, z0]
+    <z0>                        // [shiftedFunctionSig, to, 0x20, z0, size, z0, z0]
+    <z0>                        // [shiftedFunctionSig, to, 0x20, z0, size, z0, z0, z0]
+    swap6                       // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to]
+    gas                         // [shiftedFunctionSig, z0, 0x20, z0, size, z0, z0, to, gas()]
     call                        // [shiftedFunctionSig, z0, callOk]
     _REQUIRE(<z0>, 0x85b16394)  // [shiftedFunctionSig, z0]
     mload                       // [shiftedFunctionSig, ret]
@@ -171,6 +159,38 @@
     _REQUIRE(<z0>, 0x85b16394)  // []
     // returns:                    []
 }
+
+#define macro _TRANSFER_FROM_HOOK(z0) = takes(2) returns(0) {
+    // takes:                      [to, from]
+    swap1                       // [from, to]
+    0x80                        // [from, to, 0x80]
+    0x64                        // [from, to, 0x80, 0x64]
+    __FUNC_SIG("onTransferReceived(address,address,uint256,bytes)")    // [from, to, 0x80, 0x64, SIG_onTransferReceived]
+    0xe0                        // [from, to, 0x80, 0x64, SIG_onTransferReceived, 0xe0]
+    shl                         // [from, to, 0x80, 0x64, shiftedFunctionSig]
+    swap4                       // [shiftedFunctionSig, to, 0x80, 0x64, from]
+    0x24                        // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24]
+    dup6                        // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, shiftedFunctionSig]
+    <z0>                        // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, shiftedFunctionSig, z0]
+    0x64                        // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, shiftedFunctionSig, z0, 0x64]
+    calldatasize                // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, shiftedFunctionSig, z0, 0x64, calldatasize()]
+    sub                         // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, shiftedFunctionSig, z0, sub(calldatasize(), 0x64)]
+    0x64                        // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, shiftedFunctionSig, z0, sub(calldatasize(), 0x64), 0x64]
+    0x64                        // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, shiftedFunctionSig, z0, sub(calldatasize(), 0x64), 0x64, 0x64]
+    calldatacopy                // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, shiftedFunctionSig, z0]
+    mstore                      // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24]
+    caller                      // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, caller()]
+    0x4                         // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24, caller(), 0x4]
+    mstore                      // [shiftedFunctionSig, to, 0x80, 0x64, from, 0x24]
+    mstore                      // [shiftedFunctionSig, to, 0x80, 0x64]
+    mstore                      // [shiftedFunctionSig, to]
+    _DO_TRANSFER_FROM_CALL(<z0>)
+    //                             []
+    // returns:                    []
+}
+// balls-insert-end
+
+// balls-insert-start
 #define macro APPROVE_AND_CALL(z0) = takes(0) returns(0) {
     // takes:                      []
     0x20                        // [0x20]
@@ -216,19 +236,19 @@
     shl                         // [spender, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, shiftedFunctionSig]
     swap7                       // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender]
     0x60                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60]
-    caller                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller()]
-    dup10                       // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), shiftedFunctionSig]
-    <z0>                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), shiftedFunctionSig, z0]
-    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), shiftedFunctionSig, z0, 0x44]
-    calldatasize                // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), shiftedFunctionSig, z0, 0x44, calldatasize()]
-    sub                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), shiftedFunctionSig, z0, sub(calldatasize(), 0x44)]
-    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), shiftedFunctionSig, z0, sub(calldatasize(), 0x44), 0x44]
-    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), shiftedFunctionSig, z0, sub(calldatasize(), 0x44), 0x44, 0x44]
-    calldatacopy                // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), shiftedFunctionSig, z0]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller()]
-    0x4                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, caller(), 0x4]
-    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60]
     0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44]
+    dup10                       // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, shiftedFunctionSig]
+    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, shiftedFunctionSig, 0x44]
+    calldatasize                // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, shiftedFunctionSig, 0x44, calldatasize()]
+    sub                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, shiftedFunctionSig, sub(calldatasize(), 0x44)]
+    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, shiftedFunctionSig, sub(calldatasize(), 0x44), 0x44]
+    0x44                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, shiftedFunctionSig, sub(calldatasize(), 0x44), 0x44, 0x44]
+    calldatacopy                // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, shiftedFunctionSig]
+    <z0>                        // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, shiftedFunctionSig, z0]
+    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44]
+    caller                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, caller()]
+    0x4                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44, caller(), 0x4]
+    mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, 0x60, 0x44]
     mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender]
     gas                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, gas()]
     call                        // [shiftedFunctionSig, z0, callOk]
@@ -238,3 +258,4 @@
     _REQUIRE(<z0>, 0x81cbe4db)  // []
     // returns:                    []
 }
+// balls-insert-end

@@ -1,5 +1,5 @@
-#include "../libraries/SafeMath.huff"
-#include "../libraries/Errors.huff"
+#include "src/libraries/SafeMath.huff"
+#include "src/libraries/Errors.huff"
 
 
 // #define function safeAddErr(uint256,uint256,bytes4) view returns (uint256)

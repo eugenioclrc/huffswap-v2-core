@@ -1,3 +1,4 @@
+// balls-insert-start
 #define macro GET_SLOT_FROM_KEYS(z0) = takes(2) returns(1) {
     // takes:                      [key2, key1]
     0x20                        // [key2, key1, 0x20]
@@ -9,3 +10,4 @@
     sha3                        // [hashed]
     // returns:                    [hashed]
 }
+// balls-insert-end

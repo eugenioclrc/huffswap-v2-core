@@ -1,3 +1,4 @@
+// balls-insert-start
 #define macro MAX() = takes(2) returns(1) {
     // takes:                      [num2, num1]
     dup2                        // [num2, num1, num2]
@@ -222,3 +223,4 @@
     xor                         // [result]
     // returns:                    [result]
 }
+// balls-insert-end

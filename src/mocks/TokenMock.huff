@@ -1,5 +1,4 @@
-#include "../ERC20/main.huff"
-#include "../libraries/Errors.huff"
+#include "src/ERC20/main.huff"
 
 
 #define function name() nonpayable returns (string)

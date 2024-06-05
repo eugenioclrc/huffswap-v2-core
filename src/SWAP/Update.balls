@@ -1,7 +1,6 @@
-extern _REQUIRE(z0, err) stack(1, 0) reads(CONTROL_FLOW)
+extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern _UPDATE_CUMULATIVE_IFNEED(z0) stack(3, 0) reads(CONTROL_FLOW)
 
-const KLAST_SLOT
 const TOTAL_SUPPLY_SLOT
 const FACTORY
 const PACKED_RESERVE_SLOT
@@ -72,8 +71,4 @@ fn ENCODE_UQ112(r) -> (encoded) {
 fn UQ_DIV(x, y) -> (z) {
   maskUint224 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff
   z = and(div(x, y), maskUint224)
-}
-
-fn TEST_UQ(x, y, z) -> (result) {
-  result = mul(UQ_DIV(ENCODE_UQ112(x), y), z)
 }

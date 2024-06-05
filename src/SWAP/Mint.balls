@@ -1,0 +1,101 @@
+extern _MINT_FEE_IF_NOT(z0) stack(4, 0)
+extern SQRT() stack(1, 1)
+extern MIN() stack(2, 1) reads(CONTROL_FLOW)
+extern MUL_DIV(z0) stack(3, 1) reads(CONTROL_FLOW)
+extern SAFE_MUL(z0) stack(2, 1) writes(CONTROL_FLOW)
+extern SAFE_SUB_ERR(z0, err) stack(2, 1) writes(CONTROL_FLOW)
+extern _MINT(z0) stack(2, 0) writes(STORAGE)
+extern _GET_RESERVE0() stack(1, 1)
+extern _GET_RESERVE1() stack(1, 1)
+extern UNLOCK() stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
+extern LOCK(z0) stack(0, 0) writes(CONTROL_FLOW, STORAGE)
+extern _MINT_CALCULATE(z0) stack(4, 1) writes(STORAGE)
+extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern ERC20_BALANCE_OF(z0) stack(2, 1)
+extern _UPDATE(z0) stack(5, 0) writes(CONTROL_FLOW, STORAGE)
+extern _GET_BLOCK_TIMESTAMP_LAST() stack(1, 1) writes(CONTROL_FLOW)
+
+const _MINT_EVENT_SIGNATURE
+
+const KLAST_SLOT
+const TOTAL_SUPPLY_SLOT
+const PACKED_RESERVE_SLOT
+const MINIMUM_LIQUIDITY
+const FACTORY
+const TOKEN0
+const TOKEN1
+
+fn MINT<z0>() -> () {
+  LOCK<z0>()
+  to = calldataload(0x04)
+  packedReserveSlot = sload(PACKED_RESERVE_SLOT)
+  
+  reserve0 = _GET_RESERVE0(packedReserveSlot)
+  reserve1 = _GET_RESERVE1(packedReserveSlot)
+  blockTimestampLast = _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot)
+  
+  balance0 = ERC20_BALANCE_OF<z0>(TOKEN0, address())
+  balance1 = ERC20_BALANCE_OF<z0>(TOKEN1, address())
+  
+  _UPDATE<z0>(balance0, balance1, reserve0, reserve1, blockTimestampLast)
+
+  // ReservesOutOfSync() = 0x2a2ab278
+  amount0 = SAFE_SUB_ERR<z0, 0x2a2ab278>(balance0, reserve0)
+  amount1 = SAFE_SUB_ERR<z0, 0x2a2ab278>(balance1, reserve1)
+
+  mstore(z0, amount0)
+  mstore(0x20, amount1)
+  log2(z0, 0x40, _MINT_EVENT_SIGNATURE, caller())
+
+  _MINT_FEE<z0>(reserve0, reserve1)
+  sstore(KLAST_SLOT, SAFE_MUL<z0>(balance0, balance1))
+
+  liquidityToMint = _MINT_CALCULATE<z0>(amount0, amount1, reserve0, reserve1)
+  _MINT<z0>(to, liquidityToMint)
+  mstore(z0, liquidityToMint)
+  UNLOCK()
+  return(z0, 0x20)
+}
+
+fn _MINT_FEE<z0>(reserve0, reserve1) -> () writes(CONTROL_FLOW,STORAGE) {
+  klast = sload(KLAST_SLOT)
+  _MINT_FEE_IF_NOT<z0>(iszero(klast), klast, reserve0, reserve1)
+}
+
+/*
+// will use next function as template
+fn _auxTEMPLATE__MINT_FEE_IF_NOT<z0>(klast, reserve0, reserve1) -> (klast, reserve0, reserve1) {
+  rootK = SQRT(mul(reserve0, reserve1))
+  rootKLast = SQRT(klast)
+  isGt = gt(rootK, rootKLast)
+  // replace this _REQUIRE with jumpi
+  _REQUIRE<0x00, 0xff>(isGt)
+  liquidity = _MINT_FEE_CALCULATE<z0>(rootKLast, rootK)
+  _MINT(FACTORY, liquidity)
+}
+*/
+
+fn _MINT_FEE_CALCULATE<z0>(rootKLast, rootK) -> (liquidity) reads(CONTROL_FLOW, STORAGE) {
+  totalSupply = sload(TOTAL_SUPPLY_SLOT)
+  liquidity = MUL_DIV<z0>(totalSupply, sub(rootK, rootKLast), add(mul(rootK, 5), rootKLast))
+}
+
+fn _CALC_LIQUIDITY_HAS_SUPPLY<z0>(totalSupply, amount1, amount0, reserve1, reserve0) -> (liquidityToMint) reads(CONTROL_FLOW) {
+  liquidityToMint = MIN(
+    MUL_DIV<z0>(amount0, totalSupply, reserve0), 
+    MUL_DIV<z0>(amount1, totalSupply, reserve1)
+  )
+
+  // InsufficientLiquidity() = 0xbb55fd27
+  _REQUIRE<z0, 0xbb55fd27>(liquidityToMint)
+}
+
+fn _CALC_LIQUIDITY_FIRST_DEPOSIT<z0>(totalSupply, amount1, amount0, reserve1, reserve0) -> (liquidityToMint) reads(CONTROL_FLOW) {
+  liquidityToMint = SQRT(SAFE_MUL<z0>(amount0, amount1))
+  // InsufficientLiquidity() = 0xbb55fd27
+  _REQUIRE<z0, 0xbb55fd27>(gt(liquidityToMint, MINIMUM_LIQUIDITY))
+  // safe sub because of previous `check`
+  liquidityToMint = sub(liquidityToMint, MINIMUM_LIQUIDITY)
+  
+  _MINT<z0>(z0, MINIMUM_LIQUIDITY)
+}
