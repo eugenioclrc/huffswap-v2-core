@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern _GET_RESERVE0() stack(1, 1) reads(CONTROL_FLOW, STORAGE)
 extern _GET_RESERVE1() stack(1, 1) reads(CONTROL_FLOW, STORAGE)
 extern _GET_BLOCK_TIMESTAMP_LAST() stack(1, 1) writes(CONTROL_FLOW)
@@ -25,11 +25,11 @@ const MINIMUM_LIQUIDITY
 
 fn _SWAP_CHECK_INPUTS<z0>(amount0Out, amount1Out, to) -> () reads(CONTROL_FLOW) {
   // InsufficientOutputAmount() = 0x42301c23
-  _REQUIRE<z0, 0x42301c23>(or(amount0Out, amount1Out)) // if both are zero it will revert
+  REQUIRE<z0, 0x42301c23>(or(amount0Out, amount1Out)) // if both are zero it will revert
   
   // InvalidTo() = 0x290fa188
-  _REQUIRE<z0, 0x290fa188>(iszero(eq(to, TOKEN0)))
-  _REQUIRE<z0, 0x290fa188>(iszero(eq(to, TOKEN1)))
+  REQUIRE<z0, 0x290fa188>(iszero(eq(to, TOKEN0)))
+  REQUIRE<z0, 0x290fa188>(iszero(eq(to, TOKEN1)))
 }
 
 fn SWAP<z0>() -> () {
@@ -45,7 +45,7 @@ fn SWAP<z0>() -> () {
   blockTimestampLast = _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot)
 
   // InsufficientLiquidity() = 0xbb55fd27
-  _REQUIRE<z0, 0xbb55fd27>(or(lt(amount0Out, reserve0), lt(amount1Out, reserve1)))
+  REQUIRE<z0, 0xbb55fd27>(or(lt(amount0Out, reserve0), lt(amount1Out, reserve1)))
   
   _TRANSFER_SWAP_HOOK<z0>(to, amount0Out, amount1Out)
 
@@ -82,7 +82,7 @@ fn KCHECK<z0>(balance0, balance1, reserve0, reserve1) -> () reads(CONTROL_FLOW) 
   k = mul(mul(reserve0, reserve1), 1000000)
   newK = mul(balance0Adjusted, balance1Adjusted)
   // WrongK() = 0x35b01a0f
-  _REQUIRE<z0, 0x35b01a0f>(gt(newK, k))
+  REQUIRE<z0, 0x35b01a0f>(gt(newK, k))
 
   _EMIT_SWAP_EVENT<z0>(amount0In, amount1In)
 }
@@ -110,7 +110,7 @@ fn _UNISWAP_V2_CALL<z0>(to, amount0Out, amount1Out) -> () reads(CONTROL_FLOW) {
 
   callOk = call(gas(), to, z0, z0, calldatasize(), z0, z0)
   // HookCallFail()
-  _REQUIRE<z0, 0x7fd1918d>(callOk)
+  REQUIRE<z0, 0x7fd1918d>(callOk)
 }
 
 fn _STORE_IN_MEMORY_FOR_UNICALL<z0>(amount0Out, amount1Out) -> () reads(CONTROL_FLOW) writes(MEMORY) {

@@ -4,7 +4,7 @@
     0x04 0x1c revert
 }
 
-#define macro _REQUIRE(z0, err4Bytes) = takes(1) returns(0) {
+#define macro REQUIRE(z0, err4Bytes) = takes(1) returns(0) {
     // input stack               // [condition]
     requireOkeyJMP jumpi 
     _REVERT(<z0>, <err4Bytes>)

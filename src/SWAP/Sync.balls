@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern LOCK(z0) stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
 extern UNLOCK() stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
 extern ERC20_BALANCE_OF(z0) stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY)
@@ -25,11 +25,11 @@ fn SYNC<z0>() -> () {
   
   balance0 = ERC20_BALANCE_OF<z0>(TOKEN0, address())
   // InsufficientLiquidity() = 0xbb55fd27
-  _REQUIRE<z0, 0xbb55fd27>(balance0)
+  REQUIRE<z0, 0xbb55fd27>(balance0)
   
   balance1 = ERC20_BALANCE_OF<z0>(TOKEN1, address())
   // InsufficientLiquidity() = 0xbb55fd27
-  _REQUIRE<z0, 0xbb55fd27>(balance1)
+  REQUIRE<z0, 0xbb55fd27>(balance1)
   
   // balance0, balance1, reserve0, reserve1, blockTimestampLast
   _UPDATE<z0>(balance0, balance1, reserve0, reserve1, blockTimestampLast)

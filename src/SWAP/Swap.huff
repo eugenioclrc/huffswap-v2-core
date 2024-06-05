@@ -65,7 +65,7 @@
     sub                         // [amount1In, amount0In, k, balance1Adjusted, balance0Adjusted]
     mul                         // [amount1In, amount0In, k, newK]
     gt                          // [amount1In, amount0In, gt(newK, k)]
-    _REQUIRE(<z0>, 0x35b01a0f)  // [amount1In, amount0In]
+    REQUIRE(<z0>, 0x35b01a0f)  // [amount1In, amount0In]
     _EMIT_SWAP_EVENT(<z0>)      // []
     // returns:                    []
 }
@@ -104,7 +104,7 @@
     dup5                        // [reserve1, reserve0, blockTimestampLast, address(), TOKEN0, amount1Out, amount0Out, to, lt(amount0Out, reserve0), reserve1, amount1Out]
     lt                          // [reserve1, reserve0, blockTimestampLast, address(), TOKEN0, amount1Out, amount0Out, to, lt(amount0Out, reserve0), lt(amount1Out, reserve1)]
     or                          // [reserve1, reserve0, blockTimestampLast, address(), TOKEN0, amount1Out, amount0Out, to, or(lt(amount1Out, reserve1), lt(amount0Out, reserve0))]
-    _REQUIRE(<z0>, 0xbb55fd27)  // [reserve1, reserve0, blockTimestampLast, address(), TOKEN0, amount1Out, amount0Out, to]
+    REQUIRE(<z0>, 0xbb55fd27)  // [reserve1, reserve0, blockTimestampLast, address(), TOKEN0, amount1Out, amount0Out, to]
     _TRANSFER_SWAP_HOOK(<z0>)   // [reserve1, reserve0, blockTimestampLast, address(), TOKEN0]
     ERC20_BALANCE_OF(<z0>)      // [reserve1, reserve0, blockTimestampLast, balance0]
     address                     // [reserve1, reserve0, blockTimestampLast, balance0, address()]
@@ -201,16 +201,16 @@
 #define macro _SWAP_CHECK_INPUTS(z0) = takes(3) returns(0) {
     // takes:                      [to, amount1Out, amount0Out]
     or                          // [to, or(amount0Out, amount1Out)]
-    _REQUIRE(<z0>, 0x42301c23)  // [to]
+    REQUIRE(<z0>, 0x42301c23)  // [to]
     dup1                        // [to, to]
     [TOKEN0]                    // [to, to, TOKEN0]
     eq                          // [to, eq(TOKEN0, to)]
     iszero                      // [to, iszero(eq(TOKEN0, to))]
-    _REQUIRE(<z0>, 0x290fa188)  // [to]
+    REQUIRE(<z0>, 0x290fa188)  // [to]
     [TOKEN1]                    // [to, TOKEN1]
     eq                          // [eq(TOKEN1, to)]
     iszero                      // [iszero(eq(TOKEN1, to))]
-    _REQUIRE(<z0>, 0x290fa188)  // []
+    REQUIRE(<z0>, 0x290fa188)  // []
     // returns:                    []
 }
 
@@ -245,7 +245,7 @@
     swap5                       // [z0, z0, calldatasize(), z0, z0, to]
     gas                         // [z0, z0, calldatasize(), z0, z0, to, gas()]
     call                        // [callOk]
-    _REQUIRE(<z0>, 0x7fd1918d)  // []
+    REQUIRE(<z0>, 0x7fd1918d)  // []
     // returns:                    []
 }
 // balls-insert-end

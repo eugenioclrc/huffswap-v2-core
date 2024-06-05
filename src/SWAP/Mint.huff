@@ -140,7 +140,7 @@
     _MINT(<z0>)                 // [liquidityToMint, reserve1, totalSupply, liquidityToMint]
     [MINIMUM_LIQUIDITY]         // [liquidityToMint, reserve1, totalSupply, liquidityToMint, MINIMUM_LIQUIDITY]
     lt                          // [liquidityToMint, reserve1, totalSupply, lt(MINIMUM_LIQUIDITY, liquidityToMint)]
-    _REQUIRE(<z0>, 0xbb55fd27)  // [liquidityToMint, reserve1, totalSupply]
+    REQUIRE(<z0>, 0xbb55fd27)  // [liquidityToMint, reserve1, totalSupply]
     pop                         // [liquidityToMint, reserve1]
     pop                         // [liquidityToMint]
     // returns:                    [liquidityToMint]
@@ -159,7 +159,7 @@
     MUL_DIV(<z0>)               // [MUL_DIV<z0>(amount1, totalSupply, reserve1), MUL_DIV<z0>(amount0, totalSupply, reserve0)]
     MIN()                       // [liquidityToMint]
     dup1                        // [liquidityToMint, liquidityToMint]
-    _REQUIRE(<z0>, 0xbb55fd27)  // [liquidityToMint]
+    REQUIRE(<z0>, 0xbb55fd27)  // [liquidityToMint]
     // returns:                    [liquidityToMint]
 }
 

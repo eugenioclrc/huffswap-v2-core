@@ -15,7 +15,7 @@
     swap4                       // [0x20, z0, 0x24, 0x10, token]
     gas                         // [0x20, z0, 0x24, 0x10, token, gas()]
     staticcall                  // [success]
-    _REQUIRE(<z0>, 0x3dd82487)  // []
+    REQUIRE(<z0>, 0x3dd82487)  // []
     <z0>                        // [z0]
     mload                       // [amount]
     // returns:                    [amount]
@@ -46,7 +46,7 @@
     mload                       // [success, 0x1, mload(z0)]
     eq                          // [success, eq(mload(z0), 0x1)]
     or                          // [or(eq(mload(z0), 0x1), success)]
-    _REQUIRE(<z0>, 0x90b8ec18)  // []
+    REQUIRE(<z0>, 0x90b8ec18)  // []
     // returns:                    []
 }
 // balls-insert-end

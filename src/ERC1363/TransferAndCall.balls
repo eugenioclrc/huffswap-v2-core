@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern SAFE_SUB_ERR(z0, err) stack(2, 1)
 extern USE_ALLOWANCE() stack(3, 0) writes(CONTROL_FLOW)
 
@@ -46,9 +46,9 @@ fn _TRANSFER_HOOK<z0>(to) -> () writes(CONTROL_FLOW, MEMORY) {
     callOk = call(gas(), to, z0, z0, add(calldatasize(), 0x60), z0, 0x20)
 
     // error Receiver_transferReceived_rejected() = 0x85b16394
-    _REQUIRE<z0, 0x85b16394>(callOk)
+    REQUIRE<z0, 0x85b16394>(callOk)
     ret = mload(z0)
     // error Receiver_transferReceived_rejected() = 0x85b16394
     // __FUNC_SIG("onTransferReceived(address,address,uint256,bytes)") 0xe0 shl
-    _REQUIRE<z0, 0x85b16394>(eq(ret, shiftedFunctionSig))
+    REQUIRE<z0, 0x85b16394>(eq(ret, shiftedFunctionSig))
 }

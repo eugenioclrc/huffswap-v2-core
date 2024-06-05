@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 
 fn ERC20_BALANCE_OF<z0>(token, account) -> (amount) {
   mstore(z0, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
@@ -6,7 +6,7 @@ fn ERC20_BALANCE_OF<z0>(token, account) -> (amount) {
   
   success = staticcall(gas(), token, 0x10, 0x24, z0, 0x20)
   // ReadBalanceFail() = 0x3dd82487
-  _REQUIRE<z0, 0x3dd82487>(success)
+  REQUIRE<z0, 0x3dd82487>(success)
   amount = mload(z0)
 }
 
@@ -18,6 +18,6 @@ fn ERC20_TRANSFER<z0>(token, to, amount) {
 
   success = call(gas(), token, z0, 0x10, 0x44, z0, 0x20)
   // TransferFailed() = 0x90b8ec18
-  _REQUIRE<z0, 0x90b8ec18>(or(success, eq(mload(z0), 0x01)))
+  REQUIRE<z0, 0x90b8ec18>(or(success, eq(mload(z0), 0x01)))
 }
 
