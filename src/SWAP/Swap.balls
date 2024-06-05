@@ -116,6 +116,7 @@ fn _UNISWAP_V2_CALL<z0>(to, amount0Out, amount1Out) -> () reads(CONTROL_FLOW) {
 fn _STORE_IN_MEMORY_FOR_UNICALL<z0>(amount0Out, amount1Out) -> () reads(CONTROL_FLOW) writes(MEMORY) {
   calldatacopy(0x84, 0x84, sub(calldatasize(), 0x84))
   shiftedFunctionSig = shl(0xe0, SIG_uniswapV2Call)  
+  mstore(z0, shiftedFunctionSig)
   mstore(0x04, caller())
   mstore(0x24, amount0Out)
   mstore(0x44, amount1Out)
