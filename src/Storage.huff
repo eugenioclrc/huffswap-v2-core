@@ -1,7 +1,8 @@
 // constants
-#define constant FACTORY = 0xdead
-#define constant TOKEN0 = 0x00beef
-#define constant TOKEN1 = 0x00feeb
+#define constant FACTORY = 0xc00ffec00ffec00ffec00ffec00ffec00ffec00f
+
+#define constant TOKEN0 =  0xbeefbeefbeefbeefbeefbeefbeefbeefbeefbeef
+#define constant TOKEN1 =  0xc0dec0dec0dec0dec0dec0dec0dec0dec0dec0de
 
 // constants
 #define constant MINIMUM_LIQUIDITY = 0x3e8 // min liquidity = 1000;

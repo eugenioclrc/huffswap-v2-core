@@ -14,9 +14,9 @@ import {ILPToken} from "src/interfaces/ILPToken.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
 
 contract LpTest is Test {
-    address constant FACTORY = address(uint160(0xdead));
-    address constant TOKEN0 = address(uint160(0x00beef));
-    address constant TOKEN1 = address(uint160(0x00feeb));
+    address constant FACTORY = 0xc00FFEC00ffEc00FfEC00fFeC00fFEc00ffeC00f;
+    address constant TOKEN0 = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef;
+    address constant TOKEN1 = 0xC0Dec0dec0DeC0Dec0dEc0DEC0DEC0DEC0DEC0dE;
 
     // constants
     uint256 constant MINIMUM_LIQUIDITY = 0x3e8; // min liquidity = 1000;
@@ -118,6 +118,7 @@ contract LpTest is Test {
         deal(TOKEN0, address(uni), amount0);
         deal(TOKEN1, address(uni), amount1);
         deal(TOKEN0, address(this), 2 ether);
+        deal(TOKEN1, address(this), 1);
         
 
         address user = makeAddr("USER");
@@ -130,8 +131,16 @@ contract LpTest is Test {
         assertEq(MockERC20(TOKEN0).balanceOf(address(uni)), amount0 + 1 ether);
         assertEq(MockERC20(TOKEN0).balanceOf(address(lptoken)), amount0 + 1 ether);
 
-        uni.swap(0, 0.9 ether, address(this), hex"");
+        uint256 gas = gasleft();
+        
         lptoken.swap(0, 0.9 ether, address(this), hex"");
+        console.log("Gas used huffswapV2: %d", gas - gasleft());
+        
+        gas = gasleft();
+        uni.swap(0, 0.9 ether, address(this), hex"");
+        console.log("Gas used uniswapV2: %d", gas - gasleft());
+        
+        
         
     }
 }
