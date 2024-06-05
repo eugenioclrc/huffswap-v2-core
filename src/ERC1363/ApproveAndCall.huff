@@ -60,10 +60,10 @@
     mstore                      // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender]
     gas                         // [shiftedFunctionSig, z0, 0x20, z0, add(calldatasize(), 0x40), z0, z0, spender, gas()]
     call                        // [shiftedFunctionSig, z0, callOk]
-    REQUIRE(<z0>, 0x81cbe4db)  // [shiftedFunctionSig, z0]
+    REQUIRE(<z0>, 0x81cbe4db)   // [shiftedFunctionSig, z0]
     mload                       // [shiftedFunctionSig, ret]
     eq                          // [eq(ret, shiftedFunctionSig)]
-    REQUIRE(<z0>, 0x81cbe4db)  // []
+    REQUIRE(<z0>, 0x81cbe4db)   // []
     // returns:                    []
 }
 // balls-insert-end
