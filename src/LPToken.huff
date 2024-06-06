@@ -41,6 +41,8 @@
     dup1 __FUNC_SIG(swap) eq swapJump jumpi
 
     dup1 __FUNC_SIG(skim)  eq skimJump   jumpi
+                      dup1 __FUNC_SIG(burn)  eq burnJump   jumpi
+
     
     // pivot0 cut on function mint(address) returns (uint256) 0x6a627842
     dup1 __FUNC_SIG(mint) lt pivot0 jumpi
