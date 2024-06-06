@@ -247,8 +247,7 @@
 
     // function burn(address) returns (uint256, uint256) 
     burnJump:
-      // @todo BURN(<z0>)
-      0x03 0x00 revert
+      BURN(<z0>)
 
     // function symbol() view returns (string) 
     symbolJump:
