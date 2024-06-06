@@ -89,7 +89,6 @@ fn KCHECK<z0>(balance0, balance1, reserve0, reserve1) -> () reads(CONTROL_FLOW) 
 
 
 fn _EMIT_SWAP_EVENT<z0>(amount0In, amount1In) -> () writes(MEMORY, CONTROL_FLOW) {
-  mstore(z0, caller())
   mstore(z0, amount0In)
   mstore(0x20, amount1In)
   mstore(0x40, calldataload(0x04)) // amount0Out
