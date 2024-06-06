@@ -1,6 +1,6 @@
 
-// extern _MINT_FEE_IF_NOT() stack(3, 0)
-#define macro _MINT_FEE_IF_NOT(z0) = takes(3) returns(0) {
+// extern _MINT_FEE_IF_NOT() stack(4, 0)
+#define macro _MINT_FEE_IF_NOT(z0) = takes(4) returns(0) {
     // takes:                           [reserve1, reserve0, klast, iszero(klast)]
     endMintFeeZeroCheck jumpi
     
