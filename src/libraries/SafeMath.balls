@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 
 fn SAFE_ADD<z0>(num1, num2) -> (result) {
     // bytes4(keccak256("Overflow()")) == 0x35278d12
@@ -8,7 +8,7 @@ fn SAFE_ADD<z0>(num1, num2) -> (result) {
 fn SAFE_ADD_ERR<z0, err>(num1, num2) -> (result) {
     result = add(num1, num2)
     not_overflow = iszero(lt(result, num2))
-    _REQUIRE<z0, err>(not_overflow)
+    REQUIRE<z0, err>(not_overflow)
 }
 
 fn SAFE_SUB<z0>(num1, num2) -> (result) {
@@ -19,7 +19,7 @@ fn SAFE_SUB<z0>(num1, num2) -> (result) {
 fn SAFE_SUB_ERR<z0, err>(num1, num2) -> (result) {
     result = sub(num1, num2)
     not_overflow = iszero(gt(result, num1))
-    _REQUIRE<z0, err>(not_overflow)
+    REQUIRE<z0, err>(not_overflow)
 }
 
 fn SAFE_MUL<z0>(num1, num2) -> (result) {
@@ -32,7 +32,7 @@ fn SAFE_MUL_ERR<z0, err>(num1, num2) -> (result) {
     
     // if num1 == 0 then use 1 to div and check overflow
     not_overflow = eq(div(result, num1), TERNARY(z0, iszero(num1), num2))
-    _REQUIRE<z0, err>(not_overflow)
+    REQUIRE<z0, err>(not_overflow)
 }
 
 fn SAFE_DIV<z0>(num1, num2) -> (result) {
@@ -42,7 +42,7 @@ fn SAFE_DIV<z0>(num1, num2) -> (result) {
 
 fn SAFE_DIV_ERR<z0, err>(num1, num2) -> (result) {
     //if num2 == 0 revert
-    _REQUIRE<z0, err>(num2)
+    REQUIRE<z0, err>(num2)
     result = div(num1, num2)
 }
 
@@ -56,7 +56,7 @@ fn MUL_DIV<z0>(x, y, d) -> (result) {
     // Equivalent to `require(d != 0 && (y == 0 || x <= type(uint256).max / y))`.
     not_overflow = mul(or(iszero(x), eq(div(z, x), y)), d)
     // MulDivFailed() == 0xad251c27
-    _REQUIRE<z0, 0xad251c27>(not_overflow)
+    REQUIRE<z0, 0xad251c27>(not_overflow)
     result = div(z, d)
 }
 

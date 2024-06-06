@@ -1,0 +1,82 @@
+extern _MINT_FEE(z0) stack(2, 0) writes(CONTROL_FLOW) // params /*reserve0, reserve1*/
+extern MUL_DIV(z0) stack(3, 1) reads(CONTROL_FLOW)
+extern MIN() stack(2, 1) reads(CONTROL_FLOW)
+extern SAFE_MUL(z0) stack(2, 1) writes(CONTROL_FLOW)
+extern SAFE_SUB_ERR(z0, err) stack(2, 1) writes(CONTROL_FLOW)
+extern _GET_RESERVE0() stack(1, 1) reads(CONTROL_FLOW)
+extern _GET_RESERVE1() stack(1, 1) reads(CONTROL_FLOW)
+extern _GET_BLOCK_TIMESTAMP_LAST() stack(1, 1) writes(CONTROL_FLOW)
+extern UNLOCK() stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
+extern LOCK(z0) stack(0, 0) writes(CONTROL_FLOW, STORAGE)
+extern _MINT_CALCULATE(z0) stack(4, 1) writes(STORAGE)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern ERC20_BALANCE_OF(z0) stack(2, 1) writes(CONTROL_FLOW)
+extern _UPDATE(z0) stack(5, 0) writes(CONTROL_FLOW, STORAGE)
+extern _BURN(z0) stack(2, 0) writes(CONTROL_FLOW)
+extern ERC20_TRANSFER(z0) stack(3, 0) writes(CONTROL_FLOW, MEMORY)
+
+const _BURN_EVENT_SIGNATURE
+
+const KLAST_SLOT
+const TOTAL_SUPPLY_SLOT
+const PACKED_RESERVE_SLOT
+const MINIMUM_LIQUIDITY
+const FACTORY
+const TOKEN0
+const TOKEN1
+
+fn _BURN_AMOUNT() -> (amount) writes (CONTROL_FLOW) {
+    // this should be called after call _MINT_FEE
+    amount = sload(address())
+}
+
+fn _TOTAL_SUPPLY() -> (totalSupply) writes (CONTROL_FLOW) {
+    totalSupply = sload(TOTAL_SUPPLY_SLOT)
+}
+
+fn BURN<z0>() -> () {
+    to = calldataload(0x04) // @notice no hight bytes cleanup
+    LOCK<z0>()
+    burnAmount = _BURN_AMOUNT()
+    balance0 = ERC20_BALANCE_OF<z0>(TOKEN0, address())
+    balance1 = ERC20_BALANCE_OF<z0>(TOKEN1, address())
+    
+    packedReserveSlot = sload(PACKED_RESERVE_SLOT)
+    reserve0 = _GET_RESERVE0(packedReserveSlot)
+    reserve1 = _GET_RESERVE1(packedReserveSlot)
+    blockTimestampLast = _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot)
+    
+    _MINT_FEE<z0>(reserve0, reserve1)
+    totalSupply = _TOTAL_SUPPLY()
+    amount0 = MUL_DIV<z0>(burnAmount, balance0, totalSupply)
+    amount1 = MUL_DIV<z0>(burnAmount, balance1, totalSupply)
+    
+    // InsufficientLiquidityBurned() = 0x749383ad
+    REQUIRE<z0,0x749383ad >(or(amount0, amount1))
+    _BURN<z0>(address(), burnAmount)
+    ERC20_TRANSFER<z0>(TOKEN0, to, amount0)
+    ERC20_TRANSFER<z0>(TOKEN1, to, amount1)
+    _BURN_LAST_UPDATE<z0>(reserve0, reserve1, blockTimestampLast)
+    
+    UNLOCK()
+
+    _BURN_FINAL_RETURN<z0>(amount0, amount1, to)
+}
+
+fn _BURN_FINAL_RETURN<z0>(amount0, amount1, to) -> () writes (CONTROL_FLOW) {
+    mstore(z0, amount0)
+    mstore(0x20, amount1)
+    log3(z0, 0x40, _BURN_EVENT_SIGNATURE, caller(), to)
+    return(z0, 0x40)
+}
+
+
+fn _BURN_LAST_UPDATE<z0>(reserve0, reserve1, blockTimestampLast) -> () writes (CONTROL_FLOW) {
+    balance0 = ERC20_BALANCE_OF<z0>(TOKEN0, address())
+    balance1 = ERC20_BALANCE_OF<z0>(TOKEN1, address())
+    _UPDATE<z0>(balance0, balance1, reserve0, reserve1, blockTimestampLast)
+    // @notice cant overflow, _UPDATE will revert if it does (balance0 and balance1 are uint112)
+    kLast = mul(balance0,balance1)
+    
+    sstore(KLAST_SLOT, kLast)
+}

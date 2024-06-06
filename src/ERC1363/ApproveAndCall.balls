@@ -1,4 +1,4 @@
-extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern SAFE_SUB_ERR(z0, err) stack(2, 1)
 extern GET_SLOT_FROM_KEYS(z0) stack(2, 1) writes(CONTROL_FLOW)
 
@@ -35,9 +35,9 @@ fn _APPROVE_HOOK<z0>(spender) -> () reads(CONTROL_FLOW, MEMORY) {
   
   callOk = call(gas(), spender, z0, z0, add(calldatasize(), 0x40), z0, 0x20)
   // error Spender_onApprovalReceived_rejected() = 0x81cbe4db
-  _REQUIRE<z0, 0x81cbe4db>(callOk)
+  REQUIRE<z0, 0x81cbe4db>(callOk)
   ret = mload(z0)
   // error Receiver_transferReceived_rejected() = 0x81cbe4db
   // __FUNC_SIG("onApprovalReceived(address,uint256,bytes)") 0xe0 shl
-  _REQUIRE<z0, 0x81cbe4db>(eq(ret, shiftedFunctionSig))
+  REQUIRE<z0, 0x81cbe4db>(eq(ret, shiftedFunctionSig))
 }

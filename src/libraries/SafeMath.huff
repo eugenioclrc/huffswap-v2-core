@@ -34,7 +34,7 @@
     eq                          // [d, z, d, iszero(x), eq(div(z, x), y)]
     or                          // [d, z, d, or(eq(div(z, x), y), iszero(x))]
     mul                         // [d, z, not_overflow]
-    _REQUIRE(<z0>, 0xad251c27)  // [d, z]
+    REQUIRE(<z0>, 0xad251c27)   // [d, z]
     div                         // [result]
     // returns:                    [result]
 }
@@ -54,7 +54,7 @@
     dup2                        // [result, num2, result]
     lt                          // [result, lt(result, num2)]
     iszero                      // [result, not_overflow]
-    _REQUIRE(<z0>, <err>)       // [result]
+    REQUIRE(<z0>, <err>)        // [result]
     // returns:                    [result]
 }
 
@@ -68,7 +68,7 @@
 #define macro SAFE_DIV_ERR(z0, err) = takes(2) returns(1) {
     // takes:                      [num2, num1]
     dup2                        // [num2, num1, num2]
-    _REQUIRE(<z0>, <err>)       // [num2, num1]
+    REQUIRE(<z0>, <err>)        // [num2, num1]
     div                         // [result]
     // returns:                    [result]
 }
@@ -94,7 +94,7 @@
     <z0>                        // [result, div(result, num1), num2, iszero(num1), z0]
     TERNARY()                   // [result, div(result, num1), TERNARY<>(z0, iszero(num1), num2)]
     eq                          // [result, not_overflow]
-    _REQUIRE(<z0>, <err>)       // [result]
+    REQUIRE(<z0>, <err>)        // [result]
     // returns:                    [result]
 }
 
@@ -114,7 +114,7 @@
     dup2                        // [result, num1, result]
     gt                          // [result, gt(result, num1)]
     iszero                      // [result, not_overflow]
-    _REQUIRE(<z0>, <err>)       // [result]
+    REQUIRE(<z0>, <err>)        // [result]
     // returns:                    [result]
 }
 

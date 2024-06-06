@@ -1,66 +1,90 @@
-## Foundry
+<center>
+  <img src="logo.png" width="250px" alt="HuffSwap Logo" />
+</center>
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+# HuffSwap 
+**A Simple DEX with BALLs**
 
-Foundry consists of:
+## HuffSwap V2 Core
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+HuffSwap V2 Core is a decentralized trading protocol that facilitates permissionless and trustless trading of ERC20 tokens through smart contracts. Its based on Uniswap V2, and should be compatible.
 
-## Documentation
+## Previous Work
 
-https://book.getfoundry.sh/
+This project builds upon the [UniswapV2-core](https://github.com/Uniswap/v2-core/) contracts and maintains full compatibility. It also draws inspiration from previous efforts to rebuild the pair contract in Huff, such as [UniswapV2-Huff](https://github.com/AmadiMichael/UniswapV2-Huff/).
 
-## Usage
+### Prerequisites
 
-### Build
+These steps are optional if you want to modify the Pair code and recompile everything.
 
-```shell
-$ forge build
+1. Install [BALLs](https://github.com/Philogy/balls/tree/main)
+2. Install [Huff](https://github.com/huff-language/huff-rs?tab=readme-ov-file#installation)
+
+### Recompilation
+
+To recompile the contracts, run the following commands:
+
+```bash
+sh build-erc20.sh
+sh build-erc1363.sh
+sh build-libs.sh
+sh build-lp.sh
+sh create-bytecode-pair.sh
 ```
 
-### Test
+After recompiling, paste your new bytecode into [`Factory:getCreationCode`](https://github.com/eugenioclrc/huffswap-v2-core/blob/7b7572305d2ccce80c0d431beeba8948d9491080/src/Factory.sol#L32).
 
-```shell
-$ forge test
+### Setup Instructions
+
+To get started with HuffSwap V2 Core, ensure you have Foundry installed. Follow these steps:
+
+1.  Clone the HuffSwap V2 Core repository:
+
+```bash
+git clone https://github.com/eugenioclrc/huffswap-v2-core.git
 ```
 
-### Format
+2.  Navigate to the project directory:
 
-```shell
-$ forge fmt
+```bash
+cd huffswap-v2-core
 ```
 
-### Gas Snapshots
+3.  Install dependencies:
 
-```shell
-$ forge snapshot
+```bash
+forge update
 ```
 
-### Anvil
+4.  Build the project:
 
-```shell
-$ anvil
+```bash
+forge build
 ```
 
-### Deploy
+5.  Run tests to ensure everything is set up correctly:
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```bash
+forge test
 ```
 
-### Cast
+Contributing
+------------
 
-```shell
-$ cast <subcommand>
-```
+We welcome contributions from the community! To contribute, please follow these steps:
 
-### Help
+1.  Fork the repository.
+2.  Create a new branch for your feature or bugfix.
+3.  Make your changes.
+4.  Submit a pull request with a detailed description of your changes.
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+License
+-------
+
+HuffSwap V2 Core is released under the MIT License.
+
+Contact
+-------
+
+For questions or support, please open an issue in this repository or [reach out me on twitter](https://twitter.com/eugenioclrc).
+

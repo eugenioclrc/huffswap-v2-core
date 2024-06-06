@@ -10,7 +10,7 @@ extern _GET_RESERVE1() stack(1, 1)
 extern UNLOCK() stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
 extern LOCK(z0) stack(0, 0) writes(CONTROL_FLOW, STORAGE)
 extern _MINT_CALCULATE(z0) stack(4, 1) writes(STORAGE)
-extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern ERC20_BALANCE_OF(z0) stack(2, 1)
 extern _UPDATE(z0) stack(5, 0) writes(CONTROL_FLOW, STORAGE)
 extern _GET_BLOCK_TIMESTAMP_LAST() stack(1, 1) writes(CONTROL_FLOW)
@@ -68,8 +68,8 @@ fn _auxTEMPLATE__MINT_FEE_IF_NOT<z0>(klast, reserve0, reserve1) -> (klast, reser
   rootK = SQRT(mul(reserve0, reserve1))
   rootKLast = SQRT(klast)
   isGt = gt(rootK, rootKLast)
-  // replace this _REQUIRE with jumpi
-  _REQUIRE<0x00, 0xff>(isGt)
+  // replace this REQUIRE with jumpi
+  REQUIRE<0x00, 0xff>(isGt)
   liquidity = _MINT_FEE_CALCULATE<z0>(rootKLast, rootK)
   _MINT(FACTORY, liquidity)
 }
@@ -87,13 +87,13 @@ fn _CALC_LIQUIDITY_HAS_SUPPLY<z0>(totalSupply, amount1, amount0, reserve1, reser
   )
 
   // InsufficientLiquidity() = 0xbb55fd27
-  _REQUIRE<z0, 0xbb55fd27>(liquidityToMint)
+  REQUIRE<z0, 0xbb55fd27>(liquidityToMint)
 }
 
 fn _CALC_LIQUIDITY_FIRST_DEPOSIT<z0>(totalSupply, amount1, amount0, reserve1, reserve0) -> (liquidityToMint) reads(CONTROL_FLOW) {
   liquidityToMint = SQRT(SAFE_MUL<z0>(amount0, amount1))
   // InsufficientLiquidity() = 0xbb55fd27
-  _REQUIRE<z0, 0xbb55fd27>(gt(liquidityToMint, MINIMUM_LIQUIDITY))
+  REQUIRE<z0, 0xbb55fd27>(gt(liquidityToMint, MINIMUM_LIQUIDITY))
   // safe sub because of previous `check`
   liquidityToMint = sub(liquidityToMint, MINIMUM_LIQUIDITY)
   

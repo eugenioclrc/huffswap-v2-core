@@ -12,9 +12,9 @@ import {ILPToken} from "src/interfaces/ILPToken.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
 
 contract LpMintTest is Test {
-    address constant FACTORY = address(uint160(0xdead));
-    address constant TOKEN0 = address(uint160(0x00beef));
-    address constant TOKEN1 = address(uint160(0x00feeb));
+    address constant FACTORY = 0xc00FFEC00ffEc00FfEC00fFeC00fFEc00ffeC00f;
+    address constant TOKEN0 = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef;
+    address constant TOKEN1 = 0xC0Dec0dec0DeC0Dec0dEc0DEC0DEC0DEC0DEC0dE;
 
     // constants
     uint256 constant MINIMUM_LIQUIDITY = 0x3e8; // min liquidity = 1000;

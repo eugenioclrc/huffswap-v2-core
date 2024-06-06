@@ -33,6 +33,7 @@ interface ILPToken is IERC1363 {
     function sync() external;
 
     error InsufficientLiquidity();
+    error InsufficientLiquidityBurned();
     error SelectorNotFound();
     error NonPayable();
     error InsufficientOutputAmount();

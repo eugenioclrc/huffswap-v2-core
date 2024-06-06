@@ -1,7 +1,6 @@
-extern _REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
+extern REQUIRE(z0, err) stack(1, 0) writes(CONTROL_FLOW)
 extern _UPDATE_CUMULATIVE_IFNEED(z0) stack(3, 0) reads(CONTROL_FLOW)
 
-const TOTAL_SUPPLY_SLOT
 const FACTORY
 const PACKED_RESERVE_SLOT
 const RESERVE1_OFFSET
@@ -16,8 +15,8 @@ fn _UPDATE<z0>(balance0, balance1, reserve0, reserve1, blockTimestampLast) -> ()
   // bytes4(keccak256("Overflow()")) == 0x35278d12
   notOverflowBalance0 = iszero(gt(balance0, 0xffffffffffffffffffffffffffff))
   notOverflowBalance1 = iszero(gt(balance1, 0xffffffffffffffffffffffffffff))
-  _REQUIRE<z0, 0x35278d12>(notOverflowBalance0)
-  _REQUIRE<z0, 0x35278d12>(notOverflowBalance1)
+  REQUIRE<z0, 0x35278d12>(notOverflowBalance0)
+  REQUIRE<z0, 0x35278d12>(notOverflowBalance1)
 
   _EMIT_SYNC<z0>(balance0, balance1)
   _UPDATE_PACKED_RESERVE<z0>(balance0, balance1)
