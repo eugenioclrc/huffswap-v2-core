@@ -3,9 +3,6 @@ pragma solidity ^0.8.13;
 
 import {Test, console, Vm} from "forge-std/Test.sol";
 import {compile} from "./Deploy.sol";
-
-import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
-
 using {compile} for Vm;
 
 import {MockERC20} from "forge-std/mocks/MockERC20.sol";
@@ -81,7 +78,7 @@ contract LpTest is Test {
         assertEq(uni.balanceOf(address(uni)), 0);
         assertEq(lptoken.balanceOf(address(lptoken)), 0);
         
-        assertEq(MockERC20(TOKEN0).balanceOf(bob), MockERC20(TOKEN0).balanceOf(alice));
-        assertEq(MockERC20(TOKEN1).balanceOf(bob), MockERC20(TOKEN1).balanceOf(alice));
+        assertEq(IERC20(TOKEN0).balanceOf(bob), IERC20(TOKEN0).balanceOf(alice));
+        assertEq(IERC20(TOKEN1).balanceOf(bob), IERC20(TOKEN1).balanceOf(alice));
     }
 }
