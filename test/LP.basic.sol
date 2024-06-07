@@ -117,8 +117,8 @@ contract LpTest is Test {
         deal(TOKEN1, address(lptoken), amount1);
         deal(TOKEN0, address(uni), amount0);
         deal(TOKEN1, address(uni), amount1);
-        deal(TOKEN0, address(this), 2 ether);
-        deal(TOKEN1, address(this), 1);
+        deal(TOKEN0, address(this), 4 ether);
+        deal(TOKEN1, address(this), 4 ether);
         
 
         address user = makeAddr("USER");
@@ -131,13 +131,15 @@ contract LpTest is Test {
         assertEq(MockERC20(TOKEN0).balanceOf(address(uni)), amount0 + 1 ether);
         assertEq(MockERC20(TOKEN0).balanceOf(address(lptoken)), amount0 + 1 ether);
 
-        uint256 gas = gasleft();
         
-        lptoken.swap(0, 0.9 ether, address(this), hex"");
+        address bob = makeAddr("bob");
+        uint256 gas = gasleft();
+        lptoken.swap(0, 0.9 ether, bob, hex"");
         console.log("Gas used huffswapV2: %d", gas - gasleft());
         
+        address alice = makeAddr("alice");
         gas = gasleft();
-        uni.swap(0, 0.9 ether, address(this), hex"");
+        uni.swap(0, 0.9 ether, alice, hex"");
         console.log("Gas used uniswapV2: %d", gas - gasleft());
         
         
