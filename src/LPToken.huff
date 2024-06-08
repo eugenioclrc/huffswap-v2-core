@@ -39,19 +39,17 @@
 
     // this is the most used function
     dup1 __FUNC_SIG(swap) eq swapJump jumpi
-
-    dup1 __FUNC_SIG(skim)  eq skimJump   jumpi
-                      dup1 __FUNC_SIG(burn)  eq burnJump   jumpi
-
     
     // pivot0 cut on function mint(address) returns (uint256) 0x6a627842
     dup1 __FUNC_SIG(mint) lt pivot0 jumpi
-            
         // pivot00 cut on function transferFrom(address,address,uint256) returns (bool) 0x23b872dd
         dup1 __FUNC_SIG(transferFrom) lt pivot00 jumpi
                   
               // pivot000 cut on function approve(address,uint256) returns (bool) 0x095ea7b3
               dup1 __FUNC_SIG(approve) lt pivot000 jumpi
+                      // function approve(address,uint256) returns (bool)
+                      dup1 __FUNC_SIG(approve)  eq approveJump   jumpi
+              
                           // function supportsInterface(bytes4) view returns (bool)
                       dup1 __FUNC_SIG(supportsInterface)  eq supportsInterfaceJump   jumpi
               
@@ -65,8 +63,6 @@
                       not_found jump
               
               pivot000:
-                      // function approve(address,uint256) returns (bool)
-                      dup1 __FUNC_SIG(approve)  eq approveJump   jumpi
               
                       // function transferAndCall(address,uint256) returns (bool)
                       dup1 __FUNC_SIG("transferAndCall(address,uint256)") eq transferAndCallJump   jumpi
@@ -109,10 +105,6 @@
               
               
                       not_found jump
-              
-              
-        
-        
     
     pivot0:
             
@@ -121,6 +113,8 @@
                   
               // pivot010 cut on function burn(address) returns (uint256, uint256) 0x89afcb44
               dup1 __FUNC_SIG(burn) lt pivot010 jumpi
+                      dup1 __FUNC_SIG(burn)  eq burnJump   jumpi // 0x89afcb44
+
                       // function mint(address) returns (uint256)
                       dup1 __FUNC_SIG(mint)  eq mintJump   jumpi
               
@@ -134,9 +128,8 @@
                       not_found jump
               
               pivot010:
-                          // function burn(address) returns (uint256, uint256)
-                      dup1 __FUNC_SIG(burn)  eq burnJump   jumpi
-              
+                      dup1 __FUNC_SIG(skim)  eq skimJump   jumpi
+
                       // function symbol() view returns (string)
                       dup1 __FUNC_SIG(symbol)  eq symbolJump   jumpi
               
@@ -152,11 +145,9 @@
                   
               // pivot011 cut on function transferFromAndCall(address,address,uint256) returns (bool) 0xd8fbe994
               dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256)") lt pivot011 jumpi
-                          // function skim(address)
-                      dup1 __FUNC_SIG(skim)  eq skimJump   jumpi
               
                       // function transferFromAndCall(address,address,uint256,bytes) returns (bool)
-                      dup1 0xc1d34b89  eq transferFromAndCallJump   jumpi
+                      dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256,bytes)")  eq transferFromAndCallJump   jumpi
               
                       // function approveAndCall(address,uint256,bytes) returns (bool)
                       dup1 __FUNC_SIG(approveAndCall2)  eq approveAndCallJump   jumpi
