@@ -61,6 +61,35 @@ contract LpTest is Test {
         assertEq(lptoken.decimals(), 18);
         assertEq(lptoken.totalSupply(), 0);
         assertEq(lptoken.MINIMUM_LIQUIDITY(), 1000);
+        lptoken.approve(address(0xbeef), 1000);
+        assertEq(lptoken.allowance(address(this), address(0xbeef)), 1000);
+    }
+
+    function test_erc156() public {
+        // ERC165:   0x01ffc9a7
+        assertTrue(lptoken.supportsInterface(0x01ffc9a7));
+        // ERC20:    0x36372b07
+        assertTrue(lptoken.supportsInterface(0x36372b07));
+        // ERC1363:  0xb0202a11
+        assertTrue(lptoken.supportsInterface(0xb0202a11));
+        // LP funcs: 0x7d4c6ff5
+        assertTrue(lptoken.supportsInterface(0x7d4c6ff5));
+        
+        assertFalse(lptoken.supportsInterface(0x00000000));
+        assertFalse(lptoken.supportsInterface(0x00000ff5));
+        assertFalse(lptoken.supportsInterface(0x7d400000));
+    }
+
+    function test_erc156Fuzz(bytes4 s) public {
+        // ERC165:   0x01ffc9a7
+        // ERC20:    0x36372b07
+        // ERC1363:  0xb0202a11
+        // LP funcs: 0x7d4c6ff5
+        if (s == 0x01ffc9a7 || s == 0x36372b07 || s == 0xb0202a11 || s == 0x7d4c6ff5) {
+            assertTrue(lptoken.supportsInterface(s));
+        } else {
+            assertFalse(lptoken.supportsInterface(s));
+        }
     }
 
     function test_skim(uint256 amount0, uint256 amount1) public {
@@ -121,9 +150,18 @@ contract LpTest is Test {
         deal(TOKEN1, address(this), 4 ether);
         
 
-        address user = makeAddr("USER");
-        lptoken.mint(user);
-        uni.mint(user);
+        address userUni = makeAddr("USER_UNI");
+        address userHuff = makeAddr("USER_HUFF");
+        uint256 gas;
+        gas = gasleft();
+        lptoken.mint(userHuff);
+        gas = gas - gasleft();
+        console.log("ADD LIQUIDTY: Gas used huffswapV2: %d", gas);
+
+        gas = gasleft();
+        uni.mint(userUni);
+        gas = gas - gasleft();
+        console.log("ADD LIQUIDTY: Gas used UniswapV2: %d", gas);
 
         MockERC20(TOKEN0).transfer(address(uni), 1 ether);
         MockERC20(TOKEN0).transfer(address(lptoken), 1 ether);
@@ -133,16 +171,15 @@ contract LpTest is Test {
 
         
         address bob = makeAddr("bob");
-        uint256 gas = gasleft();
+        gas = gasleft();
         lptoken.swap(0, 0.9 ether, bob, hex"");
-        console.log("Gas used huffswapV2: %d", gas - gasleft());
+        gas = gas - gasleft();
+        console.log("SWAP: Gas used huffswapV2: %d", gas);
         
         address alice = makeAddr("alice");
         gas = gasleft();
         uni.swap(0, 0.9 ether, alice, hex"");
-        console.log("Gas used uniswapV2: %d", gas - gasleft());
-        
-        
-        
+        gas = gas - gasleft();
+        console.log("SWAP: Gas used uniswapV2: %d", gas);
     }
 }
