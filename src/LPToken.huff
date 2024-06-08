@@ -47,6 +47,7 @@
                   
               // pivot000 cut on function approve(address,uint256) returns (bool) 0x095ea7b3
               dup1 __FUNC_SIG(approve) lt pivot000 jumpi
+              
                       // function approve(address,uint256) returns (bool)
                       dup1 __FUNC_SIG(approve)  eq approveJump   jumpi
               
@@ -63,7 +64,9 @@
                       not_found jump
               
               pivot000:
-              
+                      // function transferFrom(address,address,uint256) returns (bool)
+                      dup1 __FUNC_SIG(transferFrom)  eq transferFromJump   jumpi
+
                       // function transferAndCall(address,uint256) returns (bool)
                       dup1 __FUNC_SIG("transferAndCall(address,uint256)") eq transferAndCallJump   jumpi
               
@@ -79,8 +82,6 @@
                   
               // pivot001 cut on function transferAndCall(address,uint256,bytes) returns (bool) 0x4000aea0
               dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)") lt pivot001 jumpi
-                      // function transferFrom(address,address,uint256) returns (bool)
-                      dup1 __FUNC_SIG(transferFrom)  eq transferFromJump   jumpi
               
                       // function decimals() view returns (uint8)
                       dup1 __FUNC_SIG(decimals)  eq decimalsJump   jumpi
@@ -92,6 +93,7 @@
                       not_found jump
               
               pivot001:
+              
                       // function mint(address) returns (uint256)
                       dup1 __FUNC_SIG(mint)  eq mintJump   jumpi
                       // function transferAndCall(address,uint256,bytes) returns (bool)
@@ -128,6 +130,7 @@
                       not_found jump
               
               pivot010:
+              
                       dup1 __FUNC_SIG(skim)  eq skimJump   jumpi
 
                       // function symbol() view returns (string)
@@ -135,6 +138,7 @@
               
                       // function transfer(address,uint256) returns (bool)
                       dup1 __FUNC_SIG(transfer)  eq transferJump   jumpi
+      dup1 __FUNC_SIG(MINIMUM_LIQUIDITY) eq minLiquidityJump jumpi
               
               
                       not_found jump
@@ -170,7 +174,6 @@
     
 
     not_found:
-      dup1 __FUNC_SIG(MINIMUM_LIQUIDITY) eq minLiquidityJump jumpi
 
       // Revert if no match is found.
       __FUNC_SIG("SelectorNotFound()") <z0> mstore
