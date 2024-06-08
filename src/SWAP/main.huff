@@ -4,6 +4,7 @@
 /// @notice Some ideas were taken from Solmate, Solady and Huffmate
 
 // ERC1363, imports ERC20, SafeMath and Storage
+#include "src/ERC165/main.huff"
 #include "src/ERC1363/main.huff"
 #include "src/libraries/ReentrancyGuard.huff"
 #include "src/libraries/SafeERC20.huff"

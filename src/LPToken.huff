@@ -190,8 +190,8 @@
       
     // function supportsInterface(bytes4) view returns (bool) 
     supportsInterfaceJump:
-      // @todo SUPPORTS_INTERFACE()
-      0x02 0x00 revert
+      SUPPORTS_INTERFACE_LP(<z0>)
+      
     // function name() view returns (string) 
     nameJump:
       NAME(<z0>)

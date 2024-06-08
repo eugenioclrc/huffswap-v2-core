@@ -1,0 +1,27 @@
+fn SUPPORTS_INTERFACE_LP<z0>() -> () {
+    s = shr(0xe0, calldataload(0x04))
+    // ERC165:  0x01ffc9a7
+    result = eq(s, 0x01ffc9a7)
+    // ERC20:   0x36372b07
+    result = or(result, eq(s, 0x36372b07))
+    // ERC1363: 0xb0202a11
+    result = or(result, eq(s, 0xb0202a11))
+    // LP funcs:0x7d4c6ff5
+    result = or(result, eq(s, 0x7d4c6ff5))
+
+    mstore(z0, result)
+    return(z0, 0x20)
+}
+
+fn SUPPORTS_INTERFACE_PAYABLE_TOKEN<z0>() -> () {
+    s = shr(0xe0, calldataload(0x04))
+    // ERC165:  0x01ffc9a7
+    result = eq(s, 0x01ffc9a7)
+    // ERC20:   0x36372b07
+    result = or(result, eq(s, 0x36372b07))
+    // ERC1363: 0xb0202a11
+    result = or(result, eq(s, 0xb0202a11))
+
+    mstore(z0, result)
+    return(z0, 0x20)
+}
