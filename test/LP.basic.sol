@@ -2,16 +2,25 @@
 pragma solidity ^0.8.13;
 
 import {Test, console, Vm} from "forge-std/Test.sol";
+
 import {compile} from "./Deploy.sol";
-
-import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
-
 using {compile} for Vm;
 
 import {MockERC20} from "forge-std/mocks/MockERC20.sol";
 
 import {ILPToken} from "src/interfaces/ILPToken.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
+
+/*
+This funcs need a sanity check
+0x1296ee62: function transferAndCall(address,uint256) external returns (bool)
+0x23b872dd: function transferFrom(address,address,uint256) external returns (bool)
+0x4000aea0: function transferAndCall(address,uint256,bytes) external returns (bool)
+0xc1d34b89: function transferFromAndCall(address,address,uint256,bytes) external returns (bool)
+0xd8fbe994: function transferFromAndCall(address,address,uint256) external returns (bool)
+0x3177029f: function approveAndCall(address,uint256) external returns (bool)
+0xcae9ca51: function approveAndCall(address,uint256,bytes) external returns (bool)
+*/
 
 contract LpTest is Test {
     address constant FACTORY = 0xc00FFEC00ffEc00FfEC00fFeC00fFEc00ffeC00f;
@@ -140,6 +149,11 @@ contract LpTest is Test {
     }
 
     function test_swapSimple() external {
+        assertEq(lptoken.kLast(), uni.kLast());
+
+        assertEq(lptoken.price0CumulativeLast(), uni.price0CumulativeLast());
+        assertEq(lptoken.price1CumulativeLast(), uni.price1CumulativeLast());
+
         uint256 amount0 = 1000 ether;
         uint256 amount1 = 1000 ether;
         deal(TOKEN0, address(lptoken), amount0);
@@ -152,6 +166,8 @@ contract LpTest is Test {
 
         address userUni = makeAddr("USER_UNI");
         address userHuff = makeAddr("USER_HUFF");
+        assertEq(lptoken.balanceOf(userHuff), uni.balanceOf(userUni));
+
         uint256 gas;
         gas = gasleft();
         lptoken.mint(userHuff);
@@ -163,13 +179,18 @@ contract LpTest is Test {
         gas = gas - gasleft();
         console.log("ADD LIQUIDTY: Gas used UniswapV2: %d", gas);
 
+        assertEq(lptoken.balanceOf(userHuff), uni.balanceOf(userUni));
+        assertEq(lptoken.price0CumulativeLast(), uni.price0CumulativeLast());
+        assertEq(lptoken.price1CumulativeLast(), uni.price1CumulativeLast());
+
         MockERC20(TOKEN0).transfer(address(uni), 1 ether);
         MockERC20(TOKEN0).transfer(address(lptoken), 1 ether);
         
         assertEq(MockERC20(TOKEN0).balanceOf(address(uni)), amount0 + 1 ether);
         assertEq(MockERC20(TOKEN0).balanceOf(address(lptoken)), amount0 + 1 ether);
 
-        
+        assertEq(lptoken.kLast(), uni.kLast());
+
         address bob = makeAddr("bob");
         gas = gasleft();
         lptoken.swap(0, 0.9 ether, bob, hex"");
@@ -181,5 +202,55 @@ contract LpTest is Test {
         uni.swap(0, 0.9 ether, alice, hex"");
         gas = gas - gasleft();
         console.log("SWAP: Gas used uniswapV2: %d", gas);
+        assertEq(lptoken.kLast(), uni.kLast());
+        assertEq(lptoken.price0CumulativeLast(), uni.price0CumulativeLast());
+        assertEq(lptoken.price1CumulativeLast(), uni.price1CumulativeLast());
+
+        vm.startPrank(userHuff);
+        assertTrue(lptoken.transfer(address(lptoken), 1000));
+        vm.stopPrank();
+        assertEq(lptoken.balanceOf(address(lptoken)), 1000);
+    }
+
+    function test_sanitycheckBurn() public {
+        assertEq(lptoken.kLast(), uni.kLast());
+
+        assertEq(lptoken.price0CumulativeLast(), uni.price0CumulativeLast());
+        assertEq(lptoken.price1CumulativeLast(), uni.price1CumulativeLast());
+
+        uint256 amount0 = 1000 ether;
+        uint256 amount1 = 1000 ether;
+        deal(TOKEN0, address(lptoken), amount0);
+        deal(TOKEN1, address(lptoken), amount1);
+        deal(TOKEN0, address(uni), amount0);
+        deal(TOKEN1, address(uni), amount1);
+        deal(TOKEN0, address(this), 4 ether);
+        deal(TOKEN1, address(this), 4 ether);
+        
+
+        address userUni = makeAddr("USER_UNI");
+        address userHuff = makeAddr("USER_HUFF");
+
+        lptoken.mint(userHuff);
+       
+        uni.mint(userUni);
+        
+        address bob = makeAddr("bob");
+        address alice = makeAddr("alice");
+
+        vm.startPrank(userHuff);
+        assertTrue(lptoken.transfer(address(lptoken), 1 ether));
+        vm.stopPrank();
+        vm.startPrank(userUni);
+        assertTrue(uni.transfer(address(uni), 1 ether));
+        vm.stopPrank();
+
+        lptoken.burn(bob);
+        uni.burn(alice);
+
+        assertEq(uni.balanceOf(address(uni)), lptoken.balanceOf(address(lptoken)));
+        assertGt(IERC20(TOKEN0).balanceOf(bob), 0);
+        assertEq(IERC20(TOKEN0).balanceOf(bob), IERC20(TOKEN0).balanceOf(alice));
+        assertEq(IERC20(TOKEN1).balanceOf(bob), IERC20(TOKEN1).balanceOf(alice));
     }
 }
