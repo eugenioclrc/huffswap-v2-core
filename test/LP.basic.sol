@@ -252,5 +252,43 @@ contract LpTest is Test {
         assertGt(IERC20(TOKEN0).balanceOf(bob), 0);
         assertEq(IERC20(TOKEN0).balanceOf(bob), IERC20(TOKEN0).balanceOf(alice));
         assertEq(IERC20(TOKEN1).balanceOf(bob), IERC20(TOKEN1).balanceOf(alice));
+
+        vm.prank(userHuff);
+        lptoken.approve(address(this), 1000);
+
+        lptoken.transferFrom(userHuff, bob, 1000);
+    }
+
+    error InsufficientBalance();
+    error InsufficientAllowance();
+    error Overflow();
+    error SelectorNotFound();
+    error Spender_onApprovalReceived_rejected();
+    error Receiver_transferReceived_rejected();
+
+    function test_sanityPayableToken() public {
+        // 0x1296ee62: function transferAndCall(address,uint256) external returns (bool)
+        vm.expectRevert(InsufficientBalance.selector);
+        lptoken.transferAndCall(address(this), 1000);
+
+        // 0x4000aea0: function transferAndCall(address,uint256,bytes) external returns (bool)
+        vm.expectRevert(InsufficientBalance.selector);
+        lptoken.transferAndCall(address(this), 1000, hex"ff");
+        
+        // 0xc1d34b89: function transferFromAndCall(address,address,uint256,bytes) external returns (bool)
+        vm.expectRevert(InsufficientAllowance.selector);
+        lptoken.transferFromAndCall(address(this), address(0xbeef), 100);
+        
+        // 0xd8fbe994: function transferFromAndCall(address,address,uint256) external returns (bool)
+        vm.expectRevert(InsufficientAllowance.selector);
+        lptoken.transferFromAndCall(address(this), address(0xbeef), 100, hex"ff");
+
+        // 0x3177029f: function approveAndCall(address,uint256) external returns (bool)
+        vm.expectRevert(Spender_onApprovalReceived_rejected.selector);
+        lptoken.approveAndCall(address(this), 1000);
+        
+        // 0xcae9ca51: function approveAndCall(address,uint256,bytes) external returns (bool)
+        vm.expectRevert(Spender_onApprovalReceived_rejected.selector);        
+        lptoken.approveAndCall(address(this), 1000, hex"fd");
     }
 }

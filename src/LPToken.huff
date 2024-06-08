@@ -88,16 +88,16 @@
               
                       // function approveAndCall(address,uint256) returns (bool)
                       dup1 __FUNC_SIG("approveAndCall(address,uint256)")  eq approveAndCallJump   jumpi
-              
-              
+                    
+                    // function transferAndCall(address,uint256,bytes) returns (bool)
+                      dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)")  eq transferAndCallJump   jumpi
+
                       not_found jump
               
               pivot001:
               
                       // function mint(address) returns (uint256)
                       dup1 __FUNC_SIG(mint)  eq mintJump   jumpi
-                      // function transferAndCall(address,uint256,bytes) returns (bool)
-                      dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)")  eq transferAndCallJump   jumpi
               
                       // function price0CumulativeLast() view returns (uint256)
                       dup1 __FUNC_SIG(price0CumulativeLast)  eq price0CumulativeLastJump   jumpi
@@ -115,6 +115,7 @@
                   
               // pivot010 cut on function burn(address) returns (uint256, uint256) 0x89afcb44
               dup1 __FUNC_SIG(burn) lt pivot010 jumpi
+              
                       dup1 __FUNC_SIG(burn)  eq burnJump   jumpi // 0x89afcb44
 
                       // function mint(address) returns (uint256)
@@ -131,15 +132,13 @@
               
               pivot010:
               
+              
                       dup1 __FUNC_SIG(skim)  eq skimJump   jumpi
-
                       // function symbol() view returns (string)
                       dup1 __FUNC_SIG(symbol)  eq symbolJump   jumpi
-              
                       // function transfer(address,uint256) returns (bool)
                       dup1 __FUNC_SIG(transfer)  eq transferJump   jumpi
-      dup1 __FUNC_SIG(MINIMUM_LIQUIDITY) eq minLiquidityJump jumpi
-              
+                      dup1 __FUNC_SIG(MINIMUM_LIQUIDITY) eq minLiquidityJump jumpi
               
                       not_found jump
               
@@ -154,15 +153,15 @@
                       dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256,bytes)")  eq transferFromAndCallJump   jumpi
               
                       // function approveAndCall(address,uint256,bytes) returns (bool)
-                      dup1 __FUNC_SIG(approveAndCall2)  eq approveAndCallJump   jumpi
+                      dup1 __FUNC_SIG("approveAndCall(address,uint256,bytes)")  eq approveAndCallJump   jumpi
               
+              // function transferFromAndCall(address,address,uint256) returns (bool)
+                      dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256)")  eq transferFromAndCallJump   jumpi
               
                       not_found jump
               
               pivot011:
-                          // function transferFromAndCall(address,address,uint256) returns (bool)
-                      dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256)")  eq transferFromAndCallJump   jumpi
-              
+                      
                       // function allowance(address,address) view returns (uint256)
                       dup1 __FUNC_SIG(allowance)  eq allowanceJump   jumpi
               
