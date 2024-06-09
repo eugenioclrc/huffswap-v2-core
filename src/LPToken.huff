@@ -3,6 +3,9 @@
 
 // Define Interface
 
+#define function token0() view returns (address)
+#define function token1() view returns (address)
+#define function factory() view returns (address)
 #define function allowance(address,address) view returns (uint256)
 #define function approve(address,uint256) nonpayable returns (bool)
 #define function approveAndCall(address,uint256) nonpayable returns (bool)
@@ -31,11 +34,25 @@
 #define function MINIMUM_LIQUIDITY() pure returns (uint256)
 
 
+#define macro CONSTRUCTOR() = takes(0) returns(0) {
+  codesize
+  0x0b
+  returndatasize
+  codecopy
+  0x0b codesize sub
+  returndatasize
+  return
+}
+
 // Function Dispatching
 #define macro DISPATCHER(z0) = takes (1) returns (1) {
     // Identify which function is being called.
     // [func sig]
     <z0> calldataload 0xE0 shr
+
+    dup1 __FUNC_SIG(token0) eq token0Jump jumpi
+    dup1 __FUNC_SIG(token1) eq token1Jump jumpi
+    dup1 __FUNC_SIG(factory) eq factoryJump jumpi
 
     // this is the most used function
     dup1 __FUNC_SIG(swap) eq swapJump jumpi
@@ -184,6 +201,22 @@
     // function supportsInterface(bytes4) view returns (bool) 
     supportsInterfaceJump:
       SUPPORTS_INTERFACE_LP(<z0>)
+    
+    token0Jump:
+      TOKEN0(<z0>)
+      <z0> mstore
+      0x20 <z0> return
+
+    token1Jump:
+      TOKEN1(<z0>)
+      <z0> mstore
+      0x20 <z0> return
+
+
+    factoryJump:
+      FACTORY(<z0>)
+      <z0> mstore
+      0x20 <z0> return
       
     // function name() view returns (string) 
     nameJump:

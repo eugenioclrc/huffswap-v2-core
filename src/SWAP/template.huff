@@ -8,7 +8,20 @@
 #include "src/ERC1363/main.huff"
 #include "src/libraries/ReentrancyGuard.huff"
 #include "src/libraries/SafeERC20.huff"
+#include "src/libraries/Immutables.huff"
 
 #define event Sync(uint112 reserve0, uint112 reserve1)
 #define event Swap(address indexed sender,uint256 amount0In,uint256 amount1In,uint256 amount0Out,uint256 amount1Out,address indexed to)
 #define event Mint(address indexed sender, uint amount0, uint amount1)
+
+#define macro FACTORY(z0) = takes(0) returns(1) {
+    _GET_IMMUTABLE(0x60, 0x00) // [token0]
+}
+
+#define macro TOKEN0(z0) = takes(0) returns(1) {
+    _GET_IMMUTABLE(0x40, 0x00) // [token0]
+} 
+
+#define macro TOKEN1(z0) = takes(0) returns(1) {
+    _GET_IMMUTABLE(0x20, 0x00) // [token0]
+} 

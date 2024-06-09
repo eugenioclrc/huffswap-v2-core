@@ -14,6 +14,11 @@ extern ERC20_BALANCE_OF(z0) stack(2, 1) writes(CONTROL_FLOW)
 extern _UPDATE(z0) stack(5, 0) writes(CONTROL_FLOW, STORAGE)
 extern _BURN(z0) stack(2, 0) writes(CONTROL_FLOW)
 extern ERC20_TRANSFER(z0) stack(3, 0) writes(CONTROL_FLOW, MEMORY)
+extern TOKEN0(z0) stack(0, 1) reads(CONTROL_FLOW)
+extern TOKEN1(z0) stack(0, 1) reads(CONTROL_FLOW)
+extern SELF_BALANCE_TOKEN0(z0) stack(0, 1) writes(CONTROL_FLOW)
+extern SELF_BALANCE_TOKEN1(z0) stack(0, 1) writes(CONTROL_FLOW)
+
 
 const _BURN_EVENT_SIGNATURE
 
@@ -21,9 +26,6 @@ const KLAST_SLOT
 const TOTAL_SUPPLY_SLOT
 const PACKED_RESERVE_SLOT
 const MINIMUM_LIQUIDITY
-const FACTORY
-const TOKEN0
-const TOKEN1
 
 fn _BURN_AMOUNT() -> (amount) writes (CONTROL_FLOW) {
     // this should be called after call _MINT_FEE
@@ -38,8 +40,8 @@ fn BURN<z0>() -> () {
     to = calldataload(0x04) // @notice no hight bytes cleanup
     LOCK<z0>()
     burnAmount = _BURN_AMOUNT()
-    balance0 = ERC20_BALANCE_OF<z0>(TOKEN0, address())
-    balance1 = ERC20_BALANCE_OF<z0>(TOKEN1, address())
+    balance0 = SELF_BALANCE_TOKEN0<z0>()
+    balance1 = SELF_BALANCE_TOKEN1<z0>()
     
     packedReserveSlot = sload(PACKED_RESERVE_SLOT)
     reserve0 = _GET_RESERVE0(packedReserveSlot)
@@ -54,8 +56,8 @@ fn BURN<z0>() -> () {
     // InsufficientLiquidityBurned() = 0x749383ad
     REQUIRE<z0,0x749383ad >(or(amount0, amount1))
     _BURN<z0>(address(), burnAmount)
-    ERC20_TRANSFER<z0>(TOKEN0, to, amount0)
-    ERC20_TRANSFER<z0>(TOKEN1, to, amount1)
+    ERC20_TRANSFER<z0>(TOKEN0<z0>(), to, amount0)
+    ERC20_TRANSFER<z0>(TOKEN1<z0>(), to, amount1)
     _BURN_LAST_UPDATE<z0>(reserve0, reserve1, blockTimestampLast)
     
     UNLOCK()
@@ -72,8 +74,8 @@ fn _BURN_FINAL_RETURN<z0>(amount0, amount1, to) -> () writes (CONTROL_FLOW) {
 
 
 fn _BURN_LAST_UPDATE<z0>(reserve0, reserve1, blockTimestampLast) -> () writes (CONTROL_FLOW) {
-    balance0 = ERC20_BALANCE_OF<z0>(TOKEN0, address())
-    balance1 = ERC20_BALANCE_OF<z0>(TOKEN1, address())
+    balance0 = SELF_BALANCE_TOKEN0<z0>()
+    balance1 = SELF_BALANCE_TOKEN1<z0>()
     _UPDATE<z0>(balance0, balance1, reserve0, reserve1, blockTimestampLast)
     // @notice cant overflow, _UPDATE will revert if it does (balance0 and balance1 are uint112)
     kLast = mul(balance0,balance1)

@@ -1,0 +1,17 @@
+// balls-insert-start
+#define macro SELF_BALANCE_TOKEN0(z0) = takes(0) returns(1) {
+    // takes:                      []
+    address                     // [address()]
+    TOKEN0(<z0>)                // [address(), TOKEN0<z0>()]
+    ERC20_BALANCE_OF(<z0>)      // [amount]
+    // returns:                    [amount]
+}
+
+#define macro SELF_BALANCE_TOKEN1(z0) = takes(0) returns(1) {
+    // takes:                      []
+    address                     // [address()]
+    TOKEN1(<z0>)                // [address(), TOKEN1<z0>()]
+    ERC20_BALANCE_OF(<z0>)      // [amount]
+    // returns:                    [amount]
+}
+// balls-insert-end

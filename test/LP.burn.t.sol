@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console, Vm} from "forge-std/Test.sol";
 import {compile} from "./Deploy.sol";
+
 using {compile} for Vm;
 
 import {MockERC20} from "forge-std/mocks/MockERC20.sol";
@@ -23,7 +24,7 @@ contract LpTest is Test {
 
     function setUp() public {
         bytes memory bytecode = vm.compile("src/LPToken.huff");
-        /// @solidity memory-safe-assembly
+        bytecode = abi.encodePacked(bytecode, abi.encode(FACTORY, TOKEN0, TOKEN1));
         ILPToken _token;
         assembly {
             _token := create(0, add(bytecode, 0x20), mload(bytecode))
@@ -74,10 +75,10 @@ contract LpTest is Test {
         vm.prank(user);
         uni.transfer(address(uni), 1 ether);
         uni.burn(alice);
-        
+
         assertEq(uni.balanceOf(address(uni)), 0);
         assertEq(lptoken.balanceOf(address(lptoken)), 0);
-        
+
         assertEq(IERC20(TOKEN0).balanceOf(bob), IERC20(TOKEN0).balanceOf(alice));
         assertEq(IERC20(TOKEN1).balanceOf(bob), IERC20(TOKEN1).balanceOf(alice));
     }

@@ -1,0 +1,9 @@
+
+/// @notice Retrives an "immutable" from the runtime bytecode.
+#define macro _GET_IMMUTABLE(offset_end, free_memory) = takes (0) returns (1) {
+    0x20                        // [size]
+    <offset_end> codesize sub   // [offset_code, size]
+    <free_memory>               // [offset_memory, offset_code, size]
+    codecopy                    // []
+    <free_memory> mload         // [value]
+}

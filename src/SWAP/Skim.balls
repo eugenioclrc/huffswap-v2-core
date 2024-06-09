@@ -1,15 +1,16 @@
 extern LOCK(z0) stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
 extern UNLOCK() stack(0, 0) reads(CONTROL_FLOW) writes(STORAGE)
-extern ERC20_BALANCE_OF(z0) stack(2, 1) reads(CONTROL_FLOW) writes(MEMORY)
 extern ERC20_TRANSFER(z0) stack(3, 0) writes(CONTROL_FLOW, MEMORY)
 extern SAFE_SUB(z0) stack(2, 1) writes(CONTROL_FLOW)
+extern TOKEN0(z0) stack(0, 1) reads(CONTROL_FLOW)
+extern TOKEN1(z0) stack(0, 1) reads(CONTROL_FLOW)
+extern SELF_BALANCE_TOKEN0(z0) stack(0, 1) reads(CONTROL_FLOW)
+extern SELF_BALANCE_TOKEN1(z0) stack(0, 1) reads(CONTROL_FLOW)
 
 extern _GET_RESERVE0() stack(1, 1) writes(CONTROL_FLOW)
 extern _GET_RESERVE1() stack(1, 1) writes(CONTROL_FLOW)
 
 const PACKED_RESERVE_SLOT
-const TOKEN0
-const TOKEN1
 
 fn SKIM<z0>() -> () {
   LOCK<z0>()
@@ -19,15 +20,15 @@ fn SKIM<z0>() -> () {
   reserve0 = _GET_RESERVE0(packedReserveSlot)
   reserve1 = _GET_RESERVE1(packedReserveSlot)
   
-  token0Balance = ERC20_BALANCE_OF<z0>(TOKEN0, address())
-  token1Balance = ERC20_BALANCE_OF<z0>(TOKEN1, address())
+  token0Balance = SELF_BALANCE_TOKEN0<z0>()
+  token1Balance = SELF_BALANCE_TOKEN1<z0>()
 
   skim0 = SAFE_SUB<z0>(token0Balance, reserve0)
   skim1 = SAFE_SUB<z0>(token1Balance, reserve1)
 
   skimmer = calldataload(0x04)
-  ERC20_TRANSFER<z0>(TOKEN0, skimmer, skim0)
-  ERC20_TRANSFER<z0>(TOKEN1, skimmer, skim1)
+  ERC20_TRANSFER<z0>(TOKEN0<z0>(), skimmer, skim0)
+  ERC20_TRANSFER<z0>(TOKEN1<z0>(), skimmer, skim1)
 
   UNLOCK()
   stop()

@@ -1,0 +1,12 @@
+// Making a new simple lib so it will be easier to BALLs to process it
+extern TOKEN0(z0) stack(0, 1) reads(CONTROL_FLOW)
+extern TOKEN1(z0) stack(0, 1) reads(CONTROL_FLOW)
+extern ERC20_BALANCE_OF(z0) stack(2, 1) writes(CONTROL_FLOW)
+
+fn SELF_BALANCE_TOKEN0<z0>() -> (amount) {
+  amount = ERC20_BALANCE_OF<z0>(TOKEN0<z0>(), address())
+}
+
+fn SELF_BALANCE_TOKEN1<z0>() -> (amount) {
+  amount = ERC20_BALANCE_OF<z0>(TOKEN1<z0>(), address())
+}

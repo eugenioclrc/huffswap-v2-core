@@ -5,6 +5,7 @@ balls src/SWAP/Burn.balls -d --output-path src/SWAP/Burn.huff
 balls src/SWAP/Skim.balls -d --output-path src/SWAP/Skim.huff
 balls src/SWAP/Sync.balls -d --output-path src/SWAP/Sync.huff
 balls src/SWAP/Swap.balls -d --output-path src/SWAP/Swap.huff
+balls src/SWAP/Utils.balls -d --output-path src/SWAP/Utils.huff
 
 cat src/SWAP/template.huff        > src/SWAP/main.huff
 echo "\n"                        >> src/SWAP/main.huff
@@ -21,6 +22,8 @@ echo "\n"                        >> src/SWAP/main.huff
 cat src/SWAP/Sync.huff           >> src/SWAP/main.huff
 echo "\n"                        >> src/SWAP/main.huff
 cat src/SWAP/Swap.huff           >> src/SWAP/main.huff
+echo "\n"                        >> src/SWAP/main.huff
+cat src/SWAP/Utils.huff           >> src/SWAP/main.huff
   
 
 # ERC20 events

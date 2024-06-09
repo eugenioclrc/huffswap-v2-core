@@ -32,7 +32,8 @@ contract LpMintTest is Test {
 
     function setUp() public {
         bytes memory bytecode = vm.compile("src/LPToken.huff");
-        /// @solidity memory-safe-assembly
+        bytecode = abi.encodePacked(bytecode, abi.encode(FACTORY, TOKEN0, TOKEN1));
+
         ILPToken _token;
         assembly {
             _token := create(0, add(bytecode, 0x20), mload(bytecode))
@@ -77,6 +78,14 @@ contract LpMintTest is Test {
         address user = makeAddr("user");
 
         vm.expectRevert(ILPToken.InsufficientLiquidity.selector);
+        lptoken.mint(user);
+    }
+
+    function test_sanityMint() public {
+        setBalance(TOKEN0, 100 ether);
+        setBalance(TOKEN1, 100 ether);
+
+        address user = makeAddr("user");
         lptoken.mint(user);
     }
 

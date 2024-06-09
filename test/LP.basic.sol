@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console, Vm} from "forge-std/Test.sol";
 
 import {compile} from "./Deploy.sol";
+
 using {compile} for Vm;
 
 import {MockERC20} from "forge-std/mocks/MockERC20.sol";
@@ -35,7 +36,10 @@ contract LpTest is Test {
 
     function setUp() public {
         bytes memory bytecode = vm.compile("src/LPToken.huff");
+        bytecode = abi.encodePacked(bytecode, abi.encode(FACTORY, TOKEN0, TOKEN1));
         /// @solidity memory-safe-assembly
+        console.logBytes(bytecode);
+
         ILPToken _token;
         assembly {
             _token := create(0, add(bytecode, 0x20), mload(bytecode))
@@ -72,6 +76,9 @@ contract LpTest is Test {
         assertEq(lptoken.MINIMUM_LIQUIDITY(), 1000);
         lptoken.approve(address(0xbeef), 1000);
         assertEq(lptoken.allowance(address(this), address(0xbeef)), 1000);
+        assertEq(lptoken.factory(), FACTORY);
+        assertEq(lptoken.token0(), uni.token0());
+        assertEq(lptoken.token1(), uni.token1());
     }
 
     function test_erc156() public {
@@ -83,7 +90,7 @@ contract LpTest is Test {
         assertTrue(lptoken.supportsInterface(0xb0202a11));
         // LP funcs: 0x7d4c6ff5
         assertTrue(lptoken.supportsInterface(0x7d4c6ff5));
-        
+
         assertFalse(lptoken.supportsInterface(0x00000000));
         assertFalse(lptoken.supportsInterface(0x00000ff5));
         assertFalse(lptoken.supportsInterface(0x7d400000));
@@ -162,7 +169,6 @@ contract LpTest is Test {
         deal(TOKEN1, address(uni), amount1);
         deal(TOKEN0, address(this), 4 ether);
         deal(TOKEN1, address(this), 4 ether);
-        
 
         address userUni = makeAddr("USER_UNI");
         address userHuff = makeAddr("USER_HUFF");
@@ -185,7 +191,7 @@ contract LpTest is Test {
 
         MockERC20(TOKEN0).transfer(address(uni), 1 ether);
         MockERC20(TOKEN0).transfer(address(lptoken), 1 ether);
-        
+
         assertEq(MockERC20(TOKEN0).balanceOf(address(uni)), amount0 + 1 ether);
         assertEq(MockERC20(TOKEN0).balanceOf(address(lptoken)), amount0 + 1 ether);
 
@@ -196,7 +202,7 @@ contract LpTest is Test {
         lptoken.swap(0, 0.9 ether, bob, hex"");
         gas = gas - gasleft();
         console.log("SWAP: Gas used huffswapV2: %d", gas);
-        
+
         address alice = makeAddr("alice");
         gas = gasleft();
         uni.swap(0, 0.9 ether, alice, hex"");
@@ -226,15 +232,14 @@ contract LpTest is Test {
         deal(TOKEN1, address(uni), amount1);
         deal(TOKEN0, address(this), 4 ether);
         deal(TOKEN1, address(this), 4 ether);
-        
 
         address userUni = makeAddr("USER_UNI");
         address userHuff = makeAddr("USER_HUFF");
 
         lptoken.mint(userHuff);
-       
+
         uni.mint(userUni);
-        
+
         address bob = makeAddr("bob");
         address alice = makeAddr("alice");
 
@@ -274,11 +279,11 @@ contract LpTest is Test {
         // 0x4000aea0: function transferAndCall(address,uint256,bytes) external returns (bool)
         vm.expectRevert(InsufficientBalance.selector);
         lptoken.transferAndCall(address(this), 1000, hex"ff");
-        
+
         // 0xc1d34b89: function transferFromAndCall(address,address,uint256,bytes) external returns (bool)
         vm.expectRevert(InsufficientAllowance.selector);
         lptoken.transferFromAndCall(address(this), address(0xbeef), 100);
-        
+
         // 0xd8fbe994: function transferFromAndCall(address,address,uint256) external returns (bool)
         vm.expectRevert(InsufficientAllowance.selector);
         lptoken.transferFromAndCall(address(this), address(0xbeef), 100, hex"ff");
@@ -286,9 +291,9 @@ contract LpTest is Test {
         // 0x3177029f: function approveAndCall(address,uint256) external returns (bool)
         vm.expectRevert(Spender_onApprovalReceived_rejected.selector);
         lptoken.approveAndCall(address(this), 1000);
-        
+
         // 0xcae9ca51: function approveAndCall(address,uint256,bytes) external returns (bool)
-        vm.expectRevert(Spender_onApprovalReceived_rejected.selector);        
+        vm.expectRevert(Spender_onApprovalReceived_rejected.selector);
         lptoken.approveAndCall(address(this), 1000, hex"fd");
     }
 }
