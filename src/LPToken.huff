@@ -50,10 +50,6 @@
     // [func sig]
     <z0> calldataload 0xE0 shr
 
-    dup1 __FUNC_SIG(token0) eq token0Jump jumpi
-    dup1 __FUNC_SIG(token1) eq token1Jump jumpi
-    dup1 __FUNC_SIG(factory) eq factoryJump jumpi
-
     // this is the most used function
     dup1 __FUNC_SIG(swap) eq swapJump jumpi
     
@@ -62,68 +58,64 @@
         // pivot00 cut on function transferFrom(address,address,uint256) returns (bool) 0x23b872dd
         dup1 __FUNC_SIG(transferFrom) lt pivot00 jumpi
                   
-              // pivot000 cut on function approve(address,uint256) returns (bool) 0x095ea7b3
-              dup1 __FUNC_SIG(approve) lt pivot000 jumpi
+            // pivot000 cut on function approve(address,uint256) returns (bool) 0x095ea7b3
+            dup1 __FUNC_SIG(approve) lt pivot000 jumpi
               
-                      // function approve(address,uint256) returns (bool)
-                      dup1 __FUNC_SIG(approve)  eq approveJump   jumpi
+                // function approve(address,uint256) returns (bool)
+                dup1 __FUNC_SIG(approve)  eq approveJump   jumpi
               
-                          // function supportsInterface(bytes4) view returns (bool)
-                      dup1 __FUNC_SIG(supportsInterface)  eq supportsInterfaceJump   jumpi
+                // function supportsInterface(bytes4) view returns (bool)
+                dup1 __FUNC_SIG(supportsInterface)  eq supportsInterfaceJump   jumpi
               
-                      // function name() view returns (string)
-                      dup1 __FUNC_SIG(name)  eq nameJump   jumpi
+                // function name() view returns (string)
+                dup1 __FUNC_SIG(name)  eq nameJump   jumpi
               
-                      // function getReserves() view returns (uint112, uint112, uint32)
-                      dup1 __FUNC_SIG(getReserves)  eq getReservesJump   jumpi
-              
-              
-                      not_found jump
-              
-              pivot000:
-                      // function transferFrom(address,address,uint256) returns (bool)
-                      dup1 __FUNC_SIG(transferFrom)  eq transferFromJump   jumpi
+                // function getReserves() view returns (uint112, uint112, uint32)
+                __FUNC_SIG(getReserves)  eq getReservesJump   jumpi
 
-                      // function transferAndCall(address,uint256) returns (bool)
-                      dup1 __FUNC_SIG("transferAndCall(address,uint256)") eq transferAndCallJump   jumpi
+                not_found jump
               
-                      // function totalSupply() view returns (uint256)
-                      dup1 __FUNC_SIG(totalSupply)  eq totalSupplyJump   jumpi
+            pivot000:
+                // function transferFrom(address,address,uint256) returns (bool)
+                dup1 __FUNC_SIG(transferFrom)  eq transferFromJump   jumpi
+
+                // function transferAndCall(address,uint256) returns (bool)
+                dup1 __FUNC_SIG("transferAndCall(address,uint256)") eq transferAndCallJump   jumpi
               
+                // function totalSupply() view returns (uint256)
+                dup1 __FUNC_SIG(totalSupply)  eq totalSupplyJump   jumpi
               
-                      not_found jump
+                __FUNC_SIG(token0) eq token0Jump jumpi
               
+                not_found jump
+
+        pivot00:     
+            // pivot001 cut on function transferAndCall(address,uint256,bytes) returns (bool) 0x4000aea0
+            dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)") lt pivot001 jumpi
               
-        
-        pivot00:
-                  
-              // pivot001 cut on function transferAndCall(address,uint256,bytes) returns (bool) 0x4000aea0
-              dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)") lt pivot001 jumpi
+            // function decimals() view returns (uint8)
+            dup1 __FUNC_SIG(decimals)  eq decimalsJump   jumpi
               
-                      // function decimals() view returns (uint8)
-                      dup1 __FUNC_SIG(decimals)  eq decimalsJump   jumpi
-              
-                      // function approveAndCall(address,uint256) returns (bool)
-                      dup1 __FUNC_SIG("approveAndCall(address,uint256)")  eq approveAndCallJump   jumpi
+            // function approveAndCall(address,uint256) returns (bool)
+            dup1 __FUNC_SIG("approveAndCall(address,uint256)")  eq approveAndCallJump   jumpi
                     
-                    // function transferAndCall(address,uint256,bytes) returns (bool)
-                      dup1 __FUNC_SIG("transferAndCall(address,uint256,bytes)")  eq transferAndCallJump   jumpi
+            // function transferAndCall(address,uint256,bytes) returns (bool)
+            __FUNC_SIG("transferAndCall(address,uint256,bytes)")  eq transferAndCallJump   jumpi
 
-                      not_found jump
+            not_found jump
               
-              pivot001:
+            pivot001:
               
-                      // function mint(address) returns (uint256)
-                      dup1 __FUNC_SIG(mint)  eq mintJump   jumpi
+                // function mint(address) returns (uint256)
+                dup1 __FUNC_SIG(mint)  eq mintJump   jumpi
               
-                      // function price0CumulativeLast() view returns (uint256)
-                      dup1 __FUNC_SIG(price0CumulativeLast)  eq price0CumulativeLastJump   jumpi
+                // function price0CumulativeLast() view returns (uint256)
+                dup1 __FUNC_SIG(price0CumulativeLast)  eq price0CumulativeLastJump   jumpi
               
-                      // function price1CumulativeLast() view returns (uint256)
-                      dup1 __FUNC_SIG(price1CumulativeLast)  eq price1CumulativeLastJump   jumpi
-              
-              
-                      not_found jump
+                // function price1CumulativeLast() view returns (uint256)
+                __FUNC_SIG(price1CumulativeLast)  eq price1CumulativeLastJump   jumpi
+
+                not_found jump
     
     pivot0:
             
@@ -142,7 +134,7 @@
                       dup1 __FUNC_SIG(balanceOf)  eq balanceOfJump   jumpi
               
                       // function kLast() view returns (uint256)
-                      dup1 __FUNC_SIG(kLast)  eq kLastJump   jumpi
+                       __FUNC_SIG(kLast)  eq kLastJump   jumpi
               
               
                       not_found jump
@@ -155,12 +147,10 @@
                       dup1 __FUNC_SIG(symbol)  eq symbolJump   jumpi
                       // function transfer(address,uint256) returns (bool)
                       dup1 __FUNC_SIG(transfer)  eq transferJump   jumpi
-                      dup1 __FUNC_SIG(MINIMUM_LIQUIDITY) eq minLiquidityJump jumpi
+                       __FUNC_SIG(MINIMUM_LIQUIDITY) eq minLiquidityJump jumpi
               
                       not_found jump
-              
-              
-        
+
         pivot01:
                   
               // pivot011 cut on function transferFromAndCall(address,address,uint256) returns (bool) 0xd8fbe994
@@ -168,12 +158,15 @@
               
                       // function transferFromAndCall(address,address,uint256,bytes) returns (bool)
                       dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256,bytes)")  eq transferFromAndCallJump   jumpi
-              
+
+                      dup1 __FUNC_SIG(token1) eq token1Jump jumpi
+
                       // function approveAndCall(address,uint256,bytes) returns (bool)
                       dup1 __FUNC_SIG("approveAndCall(address,uint256,bytes)")  eq approveAndCallJump   jumpi
               
               // function transferFromAndCall(address,address,uint256) returns (bool)
                       dup1 __FUNC_SIG("transferFromAndCall(address,address,uint256)")  eq transferFromAndCallJump   jumpi
+                      __FUNC_SIG(factory) eq factoryJump jumpi
               
                       not_found jump
               
@@ -183,7 +176,7 @@
                       dup1 __FUNC_SIG(allowance)  eq allowanceJump   jumpi
               
                       // function sync()
-                      dup1 __FUNC_SIG(sync)  eq syncJump   jumpi
+                      __FUNC_SIG(sync)  eq syncJump   jumpi
              
               
                       not_found jump
