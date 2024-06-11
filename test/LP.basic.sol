@@ -12,18 +12,15 @@ import {MockERC20} from "forge-std/mocks/MockERC20.sol";
 import {ILPToken} from "src/interfaces/ILPToken.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
 
-/*
-This funcs need a sanity check
-0x1296ee62: function transferAndCall(address,uint256) external returns (bool)
-0x23b872dd: function transferFrom(address,address,uint256) external returns (bool)
-0x4000aea0: function transferAndCall(address,uint256,bytes) external returns (bool)
-0xc1d34b89: function transferFromAndCall(address,address,uint256,bytes) external returns (bool)
-0xd8fbe994: function transferFromAndCall(address,address,uint256) external returns (bool)
-0x3177029f: function approveAndCall(address,uint256) external returns (bool)
-0xcae9ca51: function approveAndCall(address,uint256,bytes) external returns (bool)
-*/
-
 contract LpTest is Test {
+    error InsufficientBalance();
+    error InsufficientAllowance();
+    error Overflow();
+    error SelectorNotFound();
+    error Spender_onApprovalReceived_rejected();
+    error Receiver_transferReceived_rejected();
+    error WrongK();
+
     address constant FACTORY = 0xc00FFEC00ffEc00FfEC00fFeC00fFEc00ffeC00f;
     address constant TOKEN0 = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef;
     address constant TOKEN1 = 0xC0Dec0dec0DeC0Dec0dEc0DEC0DEC0DEC0DEC0dE;
@@ -37,8 +34,6 @@ contract LpTest is Test {
     function setUp() public {
         bytes memory bytecode = vm.compile("src/LPToken.huff");
         bytecode = abi.encodePacked(bytecode, abi.encode(FACTORY, TOKEN0, TOKEN1));
-        /// @solidity memory-safe-assembly
-        console.logBytes(bytecode);
 
         ILPToken _token;
         assembly {
@@ -263,13 +258,6 @@ contract LpTest is Test {
 
         lptoken.transferFrom(userHuff, bob, 1000);
     }
-
-    error InsufficientBalance();
-    error InsufficientAllowance();
-    error Overflow();
-    error SelectorNotFound();
-    error Spender_onApprovalReceived_rejected();
-    error Receiver_transferReceived_rejected();
 
     function test_sanityPayableToken() public {
         // 0x1296ee62: function transferAndCall(address,uint256) external returns (bool)
