@@ -56,26 +56,23 @@ fn SWAP<z0>() -> () {
   // @notice if balances > type(uint112).max it will revert
   _UPDATE<z0>(balance0, balance1, reserve0, reserve1, blockTimestampLast)
   
-  KCHECK<z0>(balance0, balance1, reserve0, reserve1)
+  amount0In = _CALC_AMOUNT_IN<z0>(reserve0, balance0, amount0Out)
+  amount1In = _CALC_AMOUNT_IN<z0>(reserve1, balance1, amount1Out)
+  // InsufficientInputAmount() = 0x098fb561
+  REQUIRE<z0, 0x098fb561>(or(iszero(amount0In), iszero(amount1In)))
+
+  KCHECK<z0>(balance0, balance1, reserve0, reserve1, amount0In, amount1In)
 
   UNLOCK()
   stop()
 }
 
-fn _CALC_AMOUNT0in(reserve0, balance0) -> (amount0In) {
-  amount0In = sub(reserve0, balance0)
-  amount0In = TERNARY(amount0In, gt(amount0In, 0), 0)
+fn _CALC_AMOUNT_IN<z0>(reserve, balance, amountOut) -> (amountIn) {
+  x = sub(reserve, amountOut)
+  amountIn = TERNARY(sub(balance, x), gt(x, balance), 0)
 }
 
-fn _CALC_AMOUNT1in(reserve1, balance1) -> (amount1In) {
-  amount1In = sub(reserve1, balance1)
-  amount1In = TERNARY(amount1In, gt(amount1In, 0), 0)
-}
-
-fn KCHECK<z0>(balance0, balance1, reserve0, reserve1) -> () reads(CONTROL_FLOW) writes(STORAGE) {
-  amount0In = _CALC_AMOUNT0in(reserve0, balance0)
-  amount1In = _CALC_AMOUNT1in(reserve1, balance1)
-  
+fn KCHECK<z0>(balance0, balance1, reserve0, reserve1, amount0In, amount1In) -> () reads(CONTROL_FLOW) writes(STORAGE) {
   balance0Adjusted = sub(mul(balance0, MINIMUM_LIQUIDITY), mul(amount0In, 3))
   balance1Adjusted = sub(mul(balance1, MINIMUM_LIQUIDITY), mul(amount1In, 3))
 

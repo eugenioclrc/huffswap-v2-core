@@ -37,6 +37,7 @@ interface ILPToken is IERC1363 {
     error SelectorNotFound();
     error NonPayable();
     error InsufficientOutputAmount();
+    error InsufficientInputAmount();
     error InvalidTo();
     error WrongK();
 
