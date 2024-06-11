@@ -124,4 +124,20 @@ contract SwapTest is Test {
         vm.prank(sender);
         lptoken.swap(1 ether, 0, address(this), "GM");
     }
+
+
+    function test_swapWrongK() external {
+        vm.startPrank(holder);
+        MockERC20(TOKEN0).transfer(address(uni), 1 ether);
+        MockERC20(TOKEN0).transfer(address(lptoken), 1 ether);
+        vm.stopPrank();
+
+        vm.expectRevert("UniswapV2: K");
+        address alice = makeAddr("alice");
+        uni.swap(0, 0.9975 ether, alice, hex"");
+
+        vm.expectRevert(WrongK.selector);
+        address bob = makeAddr("bob");
+        lptoken.swap(0, 0.9975 ether, bob, hex"");
+    }
 }
