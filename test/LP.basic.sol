@@ -173,26 +173,39 @@ contract LpTest is Test {
         deal(TOKEN0, address(lptoken), amount0);
         deal(TOKEN1, address(lptoken), amount1);
         lptoken.mint(address(0));
-        
+        deal(TOKEN0, address(uni), amount0);
+        deal(TOKEN1, address(uni), amount1);
+        uni.mint(address(0));
+
         vm.expectRevert(ILPToken.InsufficientLiquidity.selector);
         lptoken.swap(0, 20 ether, address(0xbeef), hex"");
+        vm.expectRevert("UniswapV2: INSUFFICIENT_LIQUIDITY");
+        uni.swap(0, 20 ether, address(0xbeef), hex"");
 
         vm.expectRevert(ILPToken.InsufficientLiquidity.selector);
         lptoken.swap(10 ether, 0, address(0xbeef), hex"");
+        vm.expectRevert("UniswapV2: INSUFFICIENT_LIQUIDITY");
+        uni.swap(10 ether, 0, address(0xbeef), hex"");
 
         vm.expectRevert(ILPToken.InsufficientLiquidity.selector);
         lptoken.swap(10 ether, 20 ether, address(0xbeef), hex"");
-        
+        vm.expectRevert("UniswapV2: INSUFFICIENT_LIQUIDITY");
+        uni.swap(10 ether, 20 ether, address(0xbeef), hex"");
+
         vm.expectRevert(ILPToken.InsufficientInputAmount.selector);
         lptoken.swap(0 ether, 1 ether, address(0xbeef), hex"");
+        vm.expectRevert("UniswapV2: INSUFFICIENT_INPUT_AMOUNT");
+        uni.swap(0 ether, 1 ether, address(0xbeef), hex"");
 
         vm.expectRevert(ILPToken.InsufficientInputAmount.selector);
         lptoken.swap(1 ether, 0, address(0xbeef), hex"");
+        vm.expectRevert("UniswapV2: INSUFFICIENT_INPUT_AMOUNT");
+        uni.swap(1 ether, 0, address(0xbeef), hex"");
 
         vm.expectRevert(ILPToken.InsufficientInputAmount.selector);
         lptoken.swap(1 ether, 1 ether, address(0xbeef), hex"");
-        
-
+        vm.expectRevert("UniswapV2: INSUFFICIENT_INPUT_AMOUNT");
+        uni.swap(1 ether, 1 ether, address(0xbeef), hex"");
     }
 
     function test_swapSimple() external {
