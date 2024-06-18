@@ -46,7 +46,7 @@ fn SWAP<z0>() -> () {
   blockTimestampLast = _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot)
 
   // InsufficientLiquidity() = 0xbb55fd27
-  REQUIRE<z0, 0xbb55fd27>(or(lt(amount0Out, reserve0), lt(amount1Out, reserve1)))
+  REQUIRE<z0, 0xbb55fd27>(and(lt(amount0Out, reserve0), lt(amount1Out, reserve1)))
   
   _TRANSFER_SWAP_HOOK<z0>(to, amount0Out, amount1Out)
 
