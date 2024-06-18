@@ -150,6 +150,15 @@ contract LpTest is Test {
         }
     }
 
+    function test_swapBasicErrors() external {
+        vm.expectRevert(ILPToken.InvalidTo.selector);
+        lptoken.swap(0, 0.9 ether, TOKEN0, hex"");
+        vm.expectRevert(ILPToken.InvalidTo.selector);
+        lptoken.swap(0, 0.9 ether, TOKEN1, hex"");
+        vm.expectRevert(ILPToken.InsufficientOutputAmount.selector);
+        lptoken.swap(0, 0, address(0xbeef), hex"");
+    }
+
     function test_swapSimple() external {
         assertEq(lptoken.kLast(), uni.kLast());
 
