@@ -699,7 +699,7 @@
     swap8                       // [amount0Out, blockTimestampLast, reserve1, reserve0, amount1Out, amount1Out, amount0Out, to, lt(amount0Out, reserve0), amount1Out]
     dup8                        // [amount0Out, blockTimestampLast, reserve1, reserve0, amount1Out, amount1Out, amount0Out, to, lt(amount0Out, reserve0), amount1Out, reserve1]
     gt                          // [amount0Out, blockTimestampLast, reserve1, reserve0, amount1Out, amount1Out, amount0Out, to, lt(amount0Out, reserve0), gt(reserve1, amount1Out)]
-    or                          // [amount0Out, blockTimestampLast, reserve1, reserve0, amount1Out, amount1Out, amount0Out, to, or(gt(reserve1, amount1Out), lt(amount0Out, reserve0))]
+    and                         // [amount0Out, blockTimestampLast, reserve1, reserve0, amount1Out, amount1Out, amount0Out, to, and(gt(reserve1, amount1Out), lt(amount0Out, reserve0))]
     REQUIRE(<z0>, 0xbb55fd27)   // [amount0Out, blockTimestampLast, reserve1, reserve0, amount1Out, amount1Out, amount0Out, to]
     _TRANSFER_SWAP_HOOK(<z0>)   // [amount0Out, blockTimestampLast, reserve1, reserve0, amount1Out]
     SELF_BALANCE_TOKEN0(<z0>)   // [amount0Out, blockTimestampLast, reserve1, reserve0, amount1Out, balance0]
