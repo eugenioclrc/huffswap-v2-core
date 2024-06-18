@@ -59,7 +59,7 @@ fn SWAP<z0>() -> () {
   amount0In = _CALC_AMOUNT_IN<z0>(reserve0, balance0, amount0Out)
   amount1In = _CALC_AMOUNT_IN<z0>(reserve1, balance1, amount1Out)
   // InsufficientInputAmount() = 0x098fb561
-  REQUIRE<z0, 0x098fb561>(or(iszero(amount0In), iszero(amount1In)))
+  REQUIRE<z0, 0x098fb561>(or(amount0In, amount1In))
 
   KCHECK<z0>(balance0, balance1, reserve0, reserve1, amount0In, amount1In)
 
