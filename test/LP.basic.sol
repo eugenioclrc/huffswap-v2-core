@@ -157,6 +157,13 @@ contract LpTest is Test {
         lptoken.swap(0, 0.9 ether, TOKEN1, hex"");
         vm.expectRevert(ILPToken.InsufficientOutputAmount.selector);
         lptoken.swap(0, 0, address(0xbeef), hex"");
+
+        vm.expectRevert(ILPToken.InsufficientLiquidity.selector);
+        lptoken.swap(0, 1, address(0xbeef), hex"");
+        vm.expectRevert(ILPToken.InsufficientLiquidity.selector);
+        lptoken.swap(1, 0, address(0xbeef), hex"");
+        vm.expectRevert(ILPToken.InsufficientLiquidity.selector);
+        lptoken.swap(1, 1, address(0xbeef), hex"");
     }
 
     function test_swapSimple() external {
