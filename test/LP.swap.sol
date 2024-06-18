@@ -125,7 +125,6 @@ contract SwapTest is Test {
         lptoken.swap(1 ether, 0, address(this), "GM");
     }
 
-
     function test_swapWrongK() external {
         vm.startPrank(holder);
         MockERC20(TOKEN0).transfer(address(uni), 1 ether);
