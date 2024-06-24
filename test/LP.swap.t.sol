@@ -29,6 +29,7 @@ contract SwapTest is Test {
     address holder = makeAddr("HOLDER");
 
     error WrongK();
+    error HookCallFail();
 
     function setUp() public {
         bytes memory bytecode = vm.compile("src/LPToken.huff");
@@ -120,7 +121,7 @@ contract SwapTest is Test {
         // reserves slot in huffswap
         expectedSlot = bytes32(uint256(0x010000000000000000000000000000000000000002));
 
-        vm.expectRevert(WrongK.selector);
+        vm.expectRevert(HookCallFail.selector);
         vm.prank(sender);
         lptoken.swap(1 ether, 0, address(this), "GM");
     }

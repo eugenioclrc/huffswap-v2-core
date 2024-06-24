@@ -109,7 +109,7 @@ fn _TRANSFER_SWAP_HOOK<z0>(to, amount0Out, amount1Out) -> () writes(MEMORY, CONT
 fn _UNISWAP_V2_CALL<z0>(to, amount0Out, amount1Out) -> () reads(CONTROL_FLOW) {
   _STORE_IN_MEMORY_FOR_UNICALL<z0>(amount0Out, amount1Out)
 
-  callOk = call(gas(), to, z0, z0, calldatasize(), z0, z0)
+  callOk = call(gas(),to, z0, z0, calldatasize(), 0x1c, z0)
   // HookCallFail()
   REQUIRE<z0, 0x7fd1918d>(callOk)
 }
