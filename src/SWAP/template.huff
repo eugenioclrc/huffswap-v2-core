@@ -15,7 +15,7 @@
 #define event Mint(address indexed sender, uint amount0, uint amount1)
 
 #define macro FACTORY(z0) = takes(0) returns(1) {
-    _GET_IMMUTABLE(0x60, 0x00) // [token0]
+    _GET_IMMUTABLE(0x60, 0x00) // [factory]
 }
 
 #define macro TOKEN0(z0) = takes(0) returns(1) {
@@ -23,5 +23,5 @@
 } 
 
 #define macro TOKEN1(z0) = takes(0) returns(1) {
-    _GET_IMMUTABLE(0x20, 0x00) // [token0]
+    _GET_IMMUTABLE(0x20, 0x00) // [token1]
 } 
