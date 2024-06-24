@@ -140,4 +140,22 @@ contract SwapTest is Test {
         address bob = makeAddr("bob");
         lptoken.swap(0, 0.9975 ether, bob, hex"");
     }
+
+    function test_swapFuzz(uint256 amount, uint256 amountOut) external {
+        amount = bound(amount, 0, 2 ether);
+        vm.startPrank(holder);
+        MockERC20(TOKEN0).transfer(address(uni), amount);
+        MockERC20(TOKEN0).transfer(address(lptoken), amount);
+        vm.stopPrank();
+
+        address alice = makeAddr("alice");
+        address bob = makeAddr("bob");
+
+        try uni.swap(0, amountOut, alice, hex"") {
+            lptoken.swap(0, amountOut, bob, hex"");
+        } catch (bytes memory err) {
+            vm.expectRevert();
+            lptoken.swap(0, amountOut, bob, hex"");
+        }
+    }
 }
