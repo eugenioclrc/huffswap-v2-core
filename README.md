@@ -32,6 +32,11 @@ sh build-lp.sh
 sh create-bytecode-pair.sh
 ```
 
+If you are on a liunx env you might want to limit the max amount of RAM to avoid deadlocks, example;
+```
+systemd-run --scope -p MemoryLimit=14000M ./build-lp.sh
+```
+
 After recompiling, paste your new bytecode into [`Factory:getCreationCode`](https://github.com/eugenioclrc/huffswap-v2-core/blob/7b7572305d2ccce80c0d431beeba8948d9491080/src/Factory.sol#L32).
 
 ### Setup Instructions
