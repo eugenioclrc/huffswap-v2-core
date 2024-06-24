@@ -250,17 +250,18 @@ contract LpTest is Test {
 
         assertEq(lptoken.kLast(), uni.kLast());
 
+        address alice = makeAddr("alice");
+        gas = gasleft();
+        uni.swap(0, 0.9 ether, alice, hex"");
+        gas = gas - gasleft();
+        console.log("SWAP: Gas used uniswapV2: %d", gas);
+
         address bob = makeAddr("bob");
         gas = gasleft();
         lptoken.swap(0, 0.9 ether, bob, hex"");
         gas = gas - gasleft();
         console.log("SWAP: Gas used huffswapV2: %d", gas);
 
-        address alice = makeAddr("alice");
-        gas = gasleft();
-        uni.swap(0, 0.9 ether, alice, hex"");
-        gas = gas - gasleft();
-        console.log("SWAP: Gas used uniswapV2: %d", gas);
         assertEq(lptoken.kLast(), uni.kLast());
         assertEq(lptoken.price0CumulativeLast(), uni.price0CumulativeLast());
         assertEq(lptoken.price1CumulativeLast(), uni.price1CumulativeLast());
