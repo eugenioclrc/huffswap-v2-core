@@ -70,7 +70,7 @@ fn SWAP<z0>() -> () {
 
 fn _CALC_AMOUNT_IN<z0>(reserve, balance, amountOut) -> (amountIn) {
   x = sub(reserve, amountOut)
-  amountIn = TERNARY(sub(balance, x), gt(x, balance), z0)
+  amountIn = TERNARY(z0, gt(x, balance), sub(balance, x))
 }
 
 fn KCHECK<z0>(balance0, balance1, reserve0, reserve1, amount0In, amount1In) -> () reads(CONTROL_FLOW) writes(STORAGE) {
