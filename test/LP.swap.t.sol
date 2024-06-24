@@ -143,6 +143,7 @@ contract SwapTest is Test {
 
     function test_swapFuzz(uint256 amount, uint256 amountOut) external {
         amount = bound(amount, 0, 2 ether);
+        amount = bound(amount, 0, 4 ether);
         vm.startPrank(holder);
         MockERC20(TOKEN0).transfer(address(uni), amount);
         MockERC20(TOKEN0).transfer(address(lptoken), amount);
@@ -153,6 +154,12 @@ contract SwapTest is Test {
 
         try uni.swap(0, amountOut, alice, hex"") {
             lptoken.swap(0, amountOut, bob, hex"");
+            assertEq(MockERC20(TOKEN0).balanceOf(alice), MockERC20(TOKEN0).balanceOf(bob));
+            assertEq(MockERC20(TOKEN1).balanceOf(alice), MockERC20(TOKEN1).balanceOf(bob));
+
+            assertEq(lptoken.kLast(), uni.kLast());
+            assertEq(lptoken.price0CumulativeLast(), uni.price0CumulativeLast());
+            assertEq(lptoken.price1CumulativeLast(), uni.price1CumulativeLast());
         } catch (bytes memory err) {
             vm.expectRevert();
             lptoken.swap(0, amountOut, bob, hex"");
