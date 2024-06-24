@@ -15,7 +15,7 @@
 #define event Mint(address indexed sender, uint amount0, uint amount1)
 
 #define macro FACTORY(z0) = takes(0) returns(1) {
-    _GET_IMMUTABLE(0x60, 0x00) // [token0]
+    _GET_IMMUTABLE(0x60, 0x00) // [factory]
 }
 
 #define macro TOKEN0(z0) = takes(0) returns(1) {
@@ -23,7 +23,7 @@
 } 
 
 #define macro TOKEN1(z0) = takes(0) returns(1) {
-    _GET_IMMUTABLE(0x20, 0x00) // [token0]
+    _GET_IMMUTABLE(0x20, 0x00) // [token1]
 } 
 
 
@@ -731,14 +731,14 @@
 #define macro _CALC_AMOUNT_IN(z0) = takes(3) returns(1) {
     // takes:                      [amountOut, balance, reserve]
     swap2                       // [reserve, balance, amountOut]
-    0x0                         // [reserve, balance, amountOut, 0x0]
-    swap3                       // [0x0, balance, amountOut, reserve]
-    sub                         // [0x0, balance, x]
-    dup1                        // [0x0, balance, x, x]
-    dup3                        // [0x0, balance, x, x, balance]
-    lt                          // [0x0, balance, x, lt(balance, x)]
-    swap2                       // [0x0, lt(balance, x), x, balance]
-    sub                         // [0x0, lt(balance, x), sub(balance, x)]
+    <z0>                        // [reserve, balance, amountOut, z0]
+    swap3                       // [z0, balance, amountOut, reserve]
+    sub                         // [z0, balance, x]
+    dup1                        // [z0, balance, x, x]
+    dup3                        // [z0, balance, x, x, balance]
+    lt                          // [z0, balance, x, lt(balance, x)]
+    swap2                       // [z0, lt(balance, x), x, balance]
+    sub                         // [z0, lt(balance, x), sub(balance, x)]
     TERNARY()                   // [amountIn]
     // returns:                    [amountIn]
 }
@@ -799,12 +799,12 @@
     REQUIRE(<z0>, 0x42301c23)   // [to]
     dup1                        // [to, to]
     TOKEN0(<z0>)                // [to, to, TOKEN0<z0>()]
-    eq                          // [to, eq(TOKEN0<z0>(), to)]
-    iszero                      // [to, iszero(eq(TOKEN0<z0>(), to))]
-    REQUIRE(<z0>, 0x290fa188)   // [to]
-    TOKEN1(<z0>)                // [to, TOKEN1<z0>()]
-    eq                          // [eq(TOKEN1<z0>(), to)]
-    iszero                      // [iszero(eq(TOKEN1<z0>(), to))]
+    eq                          // [to, toIsTOKEN0]
+    swap1                       // [toIsTOKEN0, to]
+    TOKEN1(<z0>)                // [toIsTOKEN0, to, TOKEN1<z0>()]
+    eq                          // [toIsTOKEN0, toIsTOKEN1]
+    or                          // [or(toIsTOKEN1, toIsTOKEN0)]
+    iszero                      // [iszero(or(toIsTOKEN1, toIsTOKEN0))]
     REQUIRE(<z0>, 0x290fa188)   // []
     // returns:                    []
 }
