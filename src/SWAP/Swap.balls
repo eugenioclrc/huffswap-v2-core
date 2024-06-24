@@ -29,8 +29,9 @@ fn _SWAP_CHECK_INPUTS<z0>(amount0Out, amount1Out, to) -> () reads(CONTROL_FLOW) 
   REQUIRE<z0, 0x42301c23>(or(amount0Out, amount1Out)) // if both are zero it will revert
   
   // InvalidTo() = 0x290fa188
-  REQUIRE<z0, 0x290fa188>(iszero(eq(to, TOKEN0<z0>())))
-  REQUIRE<z0, 0x290fa188>(iszero(eq(to, TOKEN1<z0>())))
+  toIsTOKEN0 = eq(to, TOKEN0<z0>())
+  toIsTOKEN1 = eq(to, TOKEN1<z0>())
+  REQUIRE<z0, 0x290fa188>(iszero(or(toIsTOKEN0, toIsTOKEN1)))
 }
 
 fn SWAP<z0>() -> () {
