@@ -42,17 +42,9 @@ contract HuffSwapFactory is Ownable {
         return allPairs.length;
     }
 
-    /**
-     * @dev Creates a new pair with two tokens.
-     * @param tokenA The address of the first token.
-     * @param tokenB The address of the second token.
-     * @return pair The address of the newly created pair.
-     * @notice Tokens must be different and not already have a pair.
-     */
-    function createPair(address tokenA, address tokenB) external returns (address pair) {
+    function _createPair(address token0, address token1) internal returns (address pair) {
         // @dev sortTokens will revert if any address is 0 or address are identical
-        (address token0, address token1) = sortTokens(tokenA, tokenB);
-        if (getPair[token0][token1] != address(0)) revert ErrPairExists(); // single check is sufficient
+        (token0, token1) = sortTokens(token0, token1);
 
         bytes memory creationCode = getCreationCode(token0, token1);
 
@@ -62,6 +54,25 @@ contract HuffSwapFactory is Ownable {
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);
         emit PairCreated(token0, token1, pair, allPairs.length);
+    }
+
+    /**
+     * @dev Creates a new pair with two tokens.
+     * @param tokenA The address of the first token.
+     * @param tokenB The address of the second token.
+     * @return pair The address of the newly created pair.
+     * @notice Tokens must be different and not already have a pair.
+     */
+    function createPair(address tokenA, address tokenB) external returns (address pair) {
+        if (getPair[tokenA][tokenB] != address(0)) revert ErrPairExists(); // single check is sufficient
+        pair = _createPair(tokenA, tokenB);
+    }
+
+    function getOrCreatePair(address tokenA, address tokenB) external returns (address pair) {
+        pair = getPair[tokenA][tokenB];
+        if (pair == address(0)) {
+            pair = _createPair(tokenA, tokenB);
+        }
     }
 
     /**
