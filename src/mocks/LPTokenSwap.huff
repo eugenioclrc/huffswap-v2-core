@@ -1,0 +1,37 @@
+#include "src/SWAP/main.huff"
+#include "Huff-Console/Console.huff"
+
+#define function swapChecks(uint256 amount0Out, uint256 amount1Out, address to) nonpayable returns()
+
+#define macro CONSTRUCTOR() = takes(0) returns(0) {
+  codesize
+  0x0b
+  returndatasize
+  codecopy
+  0x0b codesize sub
+  returndatasize
+  return
+}
+
+#define macro MAIN() = takes (1) returns (1) {
+    // Identify which function is being called.
+    0x00 calldataload 0xE0 shr          // [func_sig]
+
+    dup1 __FUNC_SIG(swapChecks)                 eq swapChecksJump             jumpi
+    
+
+    0xffffffff 0x00 mstore
+    0x04 0x1c revert
+
+    swapChecksJump:
+      0x44 calldataload           // [to]
+      0x24 calldataload           // [to, amount1Out]
+      0x04 calldataload           // [to, amount1Out, amount0Out]
+      
+      // takes:                      [to, amount1Out, amount0Out]
+      _SWAP_CHECK_INPUTS(0x00)
+      
+      stop
+
+}
+

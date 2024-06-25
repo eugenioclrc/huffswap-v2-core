@@ -29,14 +29,17 @@ fn _SWAP_CHECK_INPUTS<z0>(amount0Out, amount1Out, to) -> () reads(CONTROL_FLOW) 
   REQUIRE<z0, 0x42301c23>(or(amount0Out, amount1Out)) // if both are zero it will revert
   
   // InvalidTo() = 0x290fa188
-  REQUIRE<z0, 0x290fa188>(iszero(eq(to, TOKEN0<z0>())))
-  REQUIRE<z0, 0x290fa188>(iszero(eq(to, TOKEN1<z0>())))
+  toIsTOKEN0 = eq(to, TOKEN0<z0>())
+  toIsTOKEN1 = eq(to, TOKEN1<z0>())
+  REQUIRE<z0, 0x290fa188>(iszero(or(toIsTOKEN0, toIsTOKEN1)))
 }
 
 fn SWAP<z0>() -> () {
   LOCK<z0>()
   amount0Out = calldataload(0x04)
   amount1Out = calldataload(0x24)
+  mstore(0x40, amount0Out) // we store in this position it to reuse on sync event and hook call
+  mstore(0x60, amount1Out) // we store in this position it to reuse on sync event and hook call
   to = and(calldataload(0x44), ADDRESS_MASK)
   _SWAP_CHECK_INPUTS<z0>(amount0Out, amount1Out, to)
   
@@ -46,7 +49,7 @@ fn SWAP<z0>() -> () {
   blockTimestampLast = _GET_BLOCK_TIMESTAMP_LAST(packedReserveSlot)
 
   // InsufficientLiquidity() = 0xbb55fd27
-  REQUIRE<z0, 0xbb55fd27>(or(lt(amount0Out, reserve0), lt(amount1Out, reserve1)))
+  REQUIRE<z0, 0xbb55fd27>(and(lt(amount0Out, reserve0), lt(amount1Out, reserve1)))
   
   _TRANSFER_SWAP_HOOK<z0>(to, amount0Out, amount1Out)
 
@@ -59,8 +62,10 @@ fn SWAP<z0>() -> () {
   amount0In = _CALC_AMOUNT_IN<z0>(reserve0, balance0, amount0Out)
   amount1In = _CALC_AMOUNT_IN<z0>(reserve1, balance1, amount1Out)
   // InsufficientInputAmount() = 0x098fb561
-  REQUIRE<z0, 0x098fb561>(or(iszero(amount0In), iszero(amount1In)))
-
+  REQUIRE<z0, 0x098fb561>(or(amount0In, amount1In))
+  
+  _EMIT_SWAP_EVENT<z0>(amount0In, amount1In)
+  
   KCHECK<z0>(balance0, balance1, reserve0, reserve1, amount0In, amount1In)
 
   UNLOCK()
@@ -69,7 +74,7 @@ fn SWAP<z0>() -> () {
 
 fn _CALC_AMOUNT_IN<z0>(reserve, balance, amountOut) -> (amountIn) {
   x = sub(reserve, amountOut)
-  amountIn = TERNARY(sub(balance, x), gt(x, balance), 0)
+  amountIn = TERNARY(z0, gt(x, balance), sub(balance, x))
 }
 
 fn KCHECK<z0>(balance0, balance1, reserve0, reserve1, amount0In, amount1In) -> () reads(CONTROL_FLOW) writes(STORAGE) {
@@ -81,16 +86,15 @@ fn KCHECK<z0>(balance0, balance1, reserve0, reserve1, amount0In, amount1In) -> (
   newK = mul(balance0Adjusted, balance1Adjusted)
   // WrongK() = 0x35b01a0f
   REQUIRE<z0, 0x35b01a0f>(gt(newK, k))
-
-  _EMIT_SWAP_EVENT<z0>(amount0In, amount1In)
 }
 
 
 fn _EMIT_SWAP_EVENT<z0>(amount0In, amount1In) -> () writes(MEMORY, CONTROL_FLOW) {
   mstore(z0, amount0In)
   mstore(0x20, amount1In)
-  mstore(0x40, calldataload(0x04)) // amount0Out
-  mstore(0x60, calldataload(0x24)) // amount1Out
+  // next variables are already in memory
+  // mstore(0x40, calldataload(0x04)) // amount0Out
+  // mstore(0x60, calldataload(0x24)) // amount1Out
   log3(z0, 0x80, _SWAP_EVENT_SIGNATURE, caller(), calldataload(0x44))
 }
 
@@ -105,17 +109,17 @@ fn _TRANSFER_SWAP_HOOK<z0>(to, amount0Out, amount1Out) -> () writes(MEMORY, CONT
 fn _UNISWAP_V2_CALL<z0>(to, amount0Out, amount1Out) -> () reads(CONTROL_FLOW) {
   _STORE_IN_MEMORY_FOR_UNICALL<z0>(amount0Out, amount1Out)
 
-  callOk = call(gas(), to, z0, z0, calldatasize(), z0, z0)
+  callOk = call(gas(),to, z0, z0, calldatasize(), 0x1c, z0)
   // HookCallFail()
   REQUIRE<z0, 0x7fd1918d>(callOk)
 }
 
 fn _STORE_IN_MEMORY_FOR_UNICALL<z0>(amount0Out, amount1Out) -> () reads(CONTROL_FLOW) writes(MEMORY) {
-  calldatacopy(0x84, 0x84, sub(calldatasize(), 0x84))
-  shiftedFunctionSig = shl(0xe0, SIG_uniswapV2Call)  
-  mstore(z0, shiftedFunctionSig)
-  mstore(0x04, caller())
-  mstore(0x24, amount0Out)
-  mstore(0x44, amount1Out)
-  mstore(0x64, 0x80)
+  calldatacopy(0x80, 0x84, sub(calldatasize(), 0x84))
+  // shiftedFunctionSig = shl(0xe0, SIG_uniswapV2Call)  
+  mstore(z0, SIG_uniswapV2Call)
+  mstore(0x20, caller())
+  //mstore(0x40, amount0Out)
+  //mstore(0x60, amount1Out)
+  mstore(0x80, 0x80)
 }

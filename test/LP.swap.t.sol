@@ -29,6 +29,7 @@ contract SwapTest is Test {
     address holder = makeAddr("HOLDER");
 
     error WrongK();
+    error HookCallFail();
 
     function setUp() public {
         bytes memory bytecode = vm.compile("src/LPToken.huff");
@@ -120,11 +121,10 @@ contract SwapTest is Test {
         // reserves slot in huffswap
         expectedSlot = bytes32(uint256(0x010000000000000000000000000000000000000002));
 
-        vm.expectRevert(WrongK.selector);
+        vm.expectRevert(HookCallFail.selector);
         vm.prank(sender);
         lptoken.swap(1 ether, 0, address(this), "GM");
     }
-
 
     function test_swapWrongK() external {
         vm.startPrank(holder);
@@ -139,5 +139,30 @@ contract SwapTest is Test {
         vm.expectRevert(WrongK.selector);
         address bob = makeAddr("bob");
         lptoken.swap(0, 0.9975 ether, bob, hex"");
+    }
+
+    function test_swapFuzz(uint256 amount, uint256 amountOut) external {
+        amount = bound(amount, 0, 2 ether);
+        amount = bound(amount, 0, 4 ether);
+        vm.startPrank(holder);
+        MockERC20(TOKEN0).transfer(address(uni), amount);
+        MockERC20(TOKEN0).transfer(address(lptoken), amount);
+        vm.stopPrank();
+
+        address alice = makeAddr("alice");
+        address bob = makeAddr("bob");
+
+        try uni.swap(0, amountOut, alice, hex"") {
+            lptoken.swap(0, amountOut, bob, hex"");
+            assertEq(MockERC20(TOKEN0).balanceOf(alice), MockERC20(TOKEN0).balanceOf(bob));
+            assertEq(MockERC20(TOKEN1).balanceOf(alice), MockERC20(TOKEN1).balanceOf(bob));
+
+            assertEq(lptoken.kLast(), uni.kLast());
+            assertEq(lptoken.price0CumulativeLast(), uni.price0CumulativeLast());
+            assertEq(lptoken.price1CumulativeLast(), uni.price1CumulativeLast());
+        } catch (bytes memory err) {
+            vm.expectRevert();
+            lptoken.swap(0, amountOut, bob, hex"");
+        }
     }
 }
