@@ -121,7 +121,7 @@ contract SwapTest is Test {
         // reserves slot in huffswap
         expectedSlot = bytes32(uint256(0x010000000000000000000000000000000000000002));
 
-        vm.expectRevert(HookCallFail.selector);
+        vm.expectRevert(WrongK.selector);
         vm.prank(sender);
         lptoken.swap(1 ether, 0, address(this), "GM");
     }

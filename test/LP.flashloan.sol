@@ -93,13 +93,14 @@ contract FlahsloanTest is Test {
         lptoken.mint(userHuff);
         uni.mint(userUni);
 
+        FlashLoanReceiver receiverUni = new FlashLoanReceiver(address(uni), TOKEN0, "GM");
+        IERC20(TOKEN0).transfer(address(receiverUni), 0.3041 ether);
+        uni.swap(100 ether, 0, address(receiverUni), "GM");
+        
         FlashLoanReceiver receiver = new FlashLoanReceiver(address(lptoken), TOKEN0, "GM");
         IERC20(TOKEN0).transfer(address(receiver), 0.3041 ether);
         lptoken.swap(100 ether, 0, address(receiver), "GM");
 
-        FlashLoanReceiver receiverUni = new FlashLoanReceiver(address(uni), TOKEN0, "GM");
-        IERC20(TOKEN0).transfer(address(receiverUni), 0.3041 ether);
-        uni.swap(100 ether, 0, address(receiverUni), "GM");
         //constructor(address _pair, address _token, bytes memory _expectedData) {
 
         /*
