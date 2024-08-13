@@ -52,7 +52,7 @@ contract TokenHalmosTest is Test, SymTest {
 
     function check_allowance(address owner, address spender, uint256 amount) public {
         assert(token.allowance(owner, spender) == 0);
-        
+
         vm.prank(owner);
         assert(token.approve(spender, amount));
 
@@ -68,7 +68,7 @@ contract TokenHalmosTest is Test, SymTest {
         assert(token.balanceOf(from) == amount);
 
         assert(token.transfer(to, amount));
-        if(from != to) {
+        if (from != to) {
             assert(token.balanceOf(from) == 0);
             assert(token.balanceOf(to) == amount);
         } else {
@@ -79,26 +79,33 @@ contract TokenHalmosTest is Test, SymTest {
     function check_transferFrom(address owner, address spender, address to, uint256 amount) public {
         vm.assume(owner != address(0));
         vm.assume(spender != address(0));
+
         assert(token.balanceOf(owner) == 0);
         assert(token.balanceOf(to) == 0);
+
+        assert(token.totalSupply() == 0);
 
         vm.prank(owner);
         token.mint(owner, amount);
         assert(token.balanceOf(owner) == amount);
 
+        vm.prank(owner);
         assert(token.approve(spender, amount));
         assert(token.allowance(owner, spender) == amount);
 
         vm.prank(spender);
         assert(token.transferFrom(owner, to, amount));
 
-        if(owner != to) {
+        if (owner != to) {
             assert(token.balanceOf(owner) == 0);
             assert(token.balanceOf(to) == amount);
         } else {
             assert(token.balanceOf(owner) == amount);
         }
 
+        assert(token.totalSupply() == amount);
+        if (amount != type(uint256).max) {
+            assert(token.allowance(owner, spender) == 0);
+        }
     }
-
 }
