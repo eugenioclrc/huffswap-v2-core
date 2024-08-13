@@ -7,3 +7,6 @@
 [submodule "lib/Huff-Console"]
 	path = lib/Huff-Console
 	url = https://github.com/AmadiMichael/Huff-Console
+[submodule "lib/halmos-cheatcodes"]
+	path = lib/halmos-cheatcodes
+	url = https://github.com/a16z/halmos-cheatcodes
