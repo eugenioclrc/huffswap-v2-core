@@ -59,6 +59,53 @@ contract TokenHalmosTest is Test, SymTest {
         assert(token.allowance(owner, spender) == amount);
     }
 
+    function check_mint(address user, uint256 amount) public {
+        assert(token.totalSupply() == 0);
+
+        token.mint(user, amount);
+
+        assert(token.totalSupply() == amount);
+        assert(token.balanceOf(user) == amount);
+    }
+
+    function check_mintAndBurn(address user, uint256 amountMint, uint256 amountBurn) public {
+        assert(token.totalSupply() == 0);
+
+        token.mint(user, amountMint);
+
+        assert(token.totalSupply() == amountMint);
+
+        if (amountBurn > amountMint) {
+            (bool sucess, ) = address(token).call(abi.encodeWithSelector(IToken.burn.selector, user, amountBurn));
+            assert(!sucess);
+            assert(token.balanceOf(user) == amountMint);
+            assert(token.totalSupply() == amountMint);
+        } else {
+            token.burn(user, amountBurn);
+
+            assert(token.balanceOf(user) == amountMint - amountBurn);
+            assert(token.totalSupply() == amountMint - amountBurn);
+        }
+    }
+
+    function check_burnInsufficientBalance(address user, uint256 mintAmount, uint256 burnAmount) public {
+        vm.assume(mintAmount < type(uint256).max);
+        vm.assume(burnAmount > mintAmount);
+
+        token.mint(user, mintAmount);
+        (bool sucess, ) = address(token).call(abi.encodeWithSelector(IToken.burn.selector, user, burnAmount));
+        assert(!sucess);
+    }
+
+    function check_transferInsufficientBalance(address from, address to, uint256 mintAmount, uint256 sendAmount) public {
+        vm.assume(mintAmount < type(uint256).max);
+        vm.assume(sendAmount > mintAmount);
+
+        token.mint(from, mintAmount);
+        (bool sucess, ) = address(token).call(abi.encodeWithSelector(IToken.transfer.selector, to, sendAmount));
+        assert(!sucess);
+    }
+
     function check_transfer(address from, address to, uint256 amount) public {
         assert(token.balanceOf(from) == 0);
         assert(token.balanceOf(to) == 0);
@@ -76,36 +123,64 @@ contract TokenHalmosTest is Test, SymTest {
         }
     }
 
-    function check_transferFrom(address owner, address spender, address to, uint256 amount) public {
-        vm.assume(owner != address(0));
-        vm.assume(spender != address(0));
+    function check_transferFromInsufficientAllowance(address owner, address spender, address to, uint256 approval, uint256 amount) public {
+        vm.assume(amount > 0);
+        vm.assume(approval < amount);
 
-        assert(token.balanceOf(owner) == 0);
-        assert(token.balanceOf(to) == 0);
-
-        assert(token.totalSupply() == 0);
-
-        vm.prank(owner);
         token.mint(owner, amount);
-        assert(token.balanceOf(owner) == amount);
 
         vm.prank(owner);
-        assert(token.approve(spender, amount));
-        assert(token.allowance(owner, spender) == amount);
+        assert(token.approve(spender, approval));
+        assert(token.allowance(owner, spender) == approval);
 
         vm.prank(spender);
-        assert(token.transferFrom(owner, to, amount));
+        (bool success, ) = address(token).call(abi.encodeWithSelector(IToken.transferFrom.selector, owner, to, amount));
+        assert(!success);
+    }
 
-        if (owner != to) {
-            assert(token.balanceOf(owner) == 0);
-            assert(token.balanceOf(to) == amount);
-        } else {
-            assert(token.balanceOf(owner) == amount);
-        }
+    function testTransferFromInsufficientAllowance(address to, uint256 approval, uint256 amount) public {
+        approval = bound(approval, 0, amount - 1);
+
+        address from = makeAddr("from");
+        token.mint(from, amount);
+
+        vm.prank(from);
+        token.approve(address(this), approval);
+
+        (bool success, ) = address(token).call(abi.encodeWithSelector(IToken.transferFrom.selector, from, to, amount));
+
+        assert(!success);
+    }
+
+
+
+    function check_transferFrom(address from, address to, uint256 amount, uint256 approval, uint256 amountTransfer) public {
+        vm.assume(approval < amount);
+        vm.assume(amountTransfer <= approval);
+        
+        assert(token.balanceOf(from) == 0);
+        assert(token.balanceOf(to) == 0);
+        assert(token.totalSupply() == 0);
+
+        token.mint(from, amount);
+
+        vm.prank(from);
+        assert(token.approve(address(this), approval));
+
+        assert(token.allowance(from, address(this)) == approval);
+        assert(token.transferFrom(from, to, amountTransfer));
+
+        uint256 newAllowance = approval == type(uint256).max ? approval : approval - amountTransfer;
+
+        assert(token.allowance(from, address(this)) == newAllowance);
 
         assert(token.totalSupply() == amount);
-        if (amount != type(uint256).max) {
-            assert(token.allowance(owner, spender) == 0);
+
+        if (from == to) {
+            assert(token.balanceOf(from) == amount);
+        } else {
+            assert(token.balanceOf(from) == amount - amountTransfer);
+            assert(token.balanceOf(to) == amountTransfer);
         }
     }
 }
