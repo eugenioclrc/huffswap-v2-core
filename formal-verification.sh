@@ -1,2 +1,2 @@
 ## need --storage-layout=generic flag to work!
-halmos --storage-layout=generic
+halmos --storage-layout=generic --ffi
